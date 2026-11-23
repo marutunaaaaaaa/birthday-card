@@ -94,7 +94,7 @@
 <div class="muted" id="draftStatus" style="margin:8px 0">下書きは自動保存されます（この端末のみ）。</div>
 <div class="btnrow" style="margin-bottom:12px"><button type="button" class="btn" id="clearDraft">下書きを消す</button></div>
 <div class="field"><label>📷 写真・GIFを添える（任意）</label><input id="cardMedia" type="file" accept="image/*,.gif"><div class="muted">画像またはGIFを1枚添付できます。</div><div id="mediaPreview"></div></div><div class="field"><label>カードに表示する名前</label><input id="sender" placeholder="ニックネーム"></div><div class="field"><label>このカードの公開範囲</label><select id="cardVisibility"><option value="friends">友達にも公開する</option><option value="private">宛先の本人だけに見せる</option></select><div class="muted">公開するかどうかは、カードを書く人が1枚ごとに選べます。</div></div><button class="btn primary" id="send">カードを送る 🎁</button></div></section>
-<section id="groups" class="panel"><h2>🏫 グループ</h2><div class="card"><p>学校・クラス・部活・友達グループなど、いくつでも参加できる想定です。</p><div class="notice">本番版では、グループごとに招待パスワードを設定し、サーバー側で参加資格を確認します。</div><div class="btnrow"><button class="btn primary" id="make">＋ グループを作成</button><button class="btn" id="join">🔑 パスワードで参加</button></div></div><div class="section">参加しているグループ</div><div class="card" id="groupList"></div><input type="file" id="groupPhotoInput" accept="image/*" hidden><div class="section">📩 参加承認されたグループ</div><div class="card" id="groupApprovals"><div class="muted">承認待ちのグループはありません。</div></div></section>
+<section id="groups" class="panel"><h2>🏫 グループ</h2><div class="card"><p>学校・クラス・部活・友達グループなど、自由にグループを作成・参加できます。</p><div class="btnrow"><button class="btn primary" id="makeGroupBtn">＋ グループを作成</button><button class="btn" id="joinGroupBtn">🔑 パスワードで参加</button></div></div><div class="section">参加しているグループ</div><div class="card" id="groupList"><div class="muted">参加しているグループはありません。</div></div></section>
 <section id="friends" class="panel"><h2>🤝 友達</h2>
 <div class="card"><p>アカウント名で検索して友達リクエストを送ろう。</p><div class="inline-input"><input id="friendSearch" placeholder="例：sakura_25（@は不要）"><button class="btn primary" id="searchFriend">検索する</button></div><div id="friendSearchResult"></div></div>
 <div class="section">📨 受信したリクエスト</div><div class="card" id="incomingRequests"><div class="muted">受信したリクエストはありません。</div></div>
@@ -114,15 +114,13 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 let cards=[];
-let groups=[{id:'sample_group',name:'サンプル中学校 3年A組',icon:'🏫',owner:'system',members:[]}];
+let groups=[];
 let profile={name:'',handle:'',birthday:'',bio:'',avatar:'🙂',birthdayVisibility:'friends',wishlist:''};
 let design='pink';
 let friends=[];
 let friendRequests={incoming:[],outgoing:[]};
 let savedCardIds=[];
 let reports=[];
-let groupJoinRequests=[];
-let bannedUsers=[];
 let mediaDraft='';
 let myAuthId=null;
 
@@ -161,6 +159,10 @@ async function loadServerData(){
         else friendRequests.outgoing.push(item);
       }
     }
+  }
+  let {data:gs}=await sb.from('groups').select('*');
+  if(gs){
+    groups=gs.map(g=>({id:g.id,name:g.name,icon:g.icon||'🏫',owner:g.owner,password:g.password}));
   }
   let {data:cs}=await sb.from('cards').select('*').or(`sender.eq.${myAuthId},recipient.eq.${myAuthId}`);
   if(cs){
@@ -360,7 +362,7 @@ function loadSavedCards(){
 }
 
 function renderAdmin(){
- const ag=$('adminGroups');if(ag)ag.innerHTML=groups.map(g=>`<div class="feature-item"><b>${safe(g.name)}</b><div class="muted">メンバー 1人</div></div>`).join('');
+ const ag=$('adminGroups');if(ag)ag.innerHTML=groups.map(g=>`<div class="feature-item"><b>${safe(g.name)}</b><div class="muted">グループID: ${safe(g.id)}</div></div>`).join('');
 }
 function renderReports(){
  const rq=$('reportQueue');
@@ -404,7 +406,7 @@ function render(){
  const ao=$('avatarOptions');if(ao)ao.innerHTML=avatarChoices.map(a=>`<button type="button" class="avatar-choice ${profile.avatar===a?'sel':''}" data-avatar="${a}">${a}</button>`).join('');
  const pp=$('people');if(pp)pp.innerHTML=recipientList().map(p=>{let days=daysUntilBirthday(p.date);return `<div class="person"><div class="avatar">${p.emoji}</div><div class="grow"><b>${p.name}</b><div class="muted">${p.date} 生まれ · ${days===0?'今日が誕生日！':`あと${days}日`}</div></div><button class="btn" onclick="showBirthday('${p.id}')">カードを見る</button><button class="btn primary" onclick="pick('${p.id}')">書く</button></div>`}).join('');
  const toEl=$('to');if(toEl)toEl.innerHTML=recipientList().map(p=>`<option value="${p.id}">${safe(p.name)}</option>`).join('');
- const gl=$('groupList');if(gl)gl.innerHTML=groups.map(g=>`<div class="group"><div class="avatar">🏫</div><div class="grow"><b>${safe(g.name)}</b><div class="muted">参加中</div></div></div>`).join('');
+ const gl=$('groupList');if(gl)gl.innerHTML=groups.length?groups.map(g=>`<div class="group"><div class="avatar">🏫</div><div class="grow"><b>${safe(g.name)}</b><div class="muted">参加中</div></div></div>`).join(''):'<div class="muted">参加しているグループはありません。</div>';
  const nameEl=$('name');if(nameEl)nameEl.value=profile.name;
  const bthEl=$('birthday');if(bthEl)bthEl.value=profile.birthday;
  const bthVis=$('birthdayVisibility');if(bthVis)bthVis.value=profile.birthdayVisibility||'friends';
@@ -415,6 +417,7 @@ function render(){
  loadFriends();
  loadSavedCards();
  renderCalendar();
+ renderAdmin();
 }
 
 window.showBirthday=showBirthday;
@@ -482,8 +485,15 @@ if(sendBtn){
   };
 }
 
-const makeBtn=$('make');if(makeBtn)makeBtn.onclick=()=>modal('グループ機能',`<p>グループ機能は今後追加予定です！</p>`);
-const joinBtn=$('join');if(joinBtn)joinBtn.onclick=()=>modal('グループ機能',`<p>グループ機能は今後追加予定です！</p>`);
+const makeGroupBtn=$('makeGroupBtn');
+if(makeGroupBtn){
+  makeGroupBtn.onclick=()=>modal('グループを作成',`<div class="field"><label>グループ名</label><input id="newGroupName" placeholder="例：吹奏楽部"></div><div class="field"><label>参加パスワード</label><input id="newGroupPassword" type="password" placeholder="合言葉を設定"></div><button class="btn primary" id="confirmCreateGroup">作成する</button>`);
+}
+
+const joinGroupBtn=$('joinGroupBtn');
+if(joinGroupBtn){
+  joinGroupBtn.onclick=()=>modal('グループに参加',`<div class="field"><label>グループ名</label><input id="joinGroupName" placeholder="グループ名を入力"></div><div class="field"><label>参加パスワード</label><input id="joinGroupPassword" type="password" placeholder="合言葉を入力"></div><button class="btn primary" id="confirmJoinGroup">参加する</button>`);
+}
 
 const cardMediaInput=$('cardMedia');
 if(cardMediaInput){
@@ -549,6 +559,26 @@ document.addEventListener('click',async e=>{
     $('modal').classList.remove('show');
     await loadServerData();
     toast('カードを編集したよ！');
+  }
+  if(target.id==='confirmCreateGroup'){
+    let name=$('newGroupName').value.trim();
+    let password=$('newGroupPassword').value;
+    if(!name||!password)return toast('グループ名とパスワードを入力してね');
+    let {error}=await sb.from('groups').insert({name,password,owner:myAuthId,icon:'🏫'});
+    if(error)return toast('グループの作成に失敗しました：'+error.message);
+    $('modal').classList.remove('show');
+    await loadServerData();
+    toast('グループを作成したよ！');
+  }
+  if(target.id==='confirmJoinGroup'){
+    let name=$('joinGroupName').value.trim();
+    let password=$('joinGroupPassword').value;
+    if(!name||!password)return toast('グループ名とパスワードを入力してね');
+    let {data:found, error}=await sb.from('groups').select('*').eq('name',name).eq('password',password).maybeSingle();
+    if(error||!found)return toast('グループ名かパスワードが間違っています');
+    $('modal').classList.remove('show');
+    toast('グループに参加しました！');
+    await loadServerData();
   }
 });
 
