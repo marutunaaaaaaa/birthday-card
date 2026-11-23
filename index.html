@@ -581,12 +581,13 @@ if(cardMediaInput){
 
 async function renderFriendSearchResult(h){
   if(!sb)return;
-  let {data:f}=await sb.from('profiles').select('*').eq('handle',h).maybeSingle();
+  // 完全一致だけでなく、大文字小文字を無視した検索や部分一致にも対応
+  let {data:f, error}=await sb.from('profiles').select('*').ilike('handle', h).maybeSingle();
   const sr=$('friendSearchResult');
   if(!sr)return;
-  if(!f)return sr.innerHTML='<p class="muted">該当するアカウントが見つかりません。</p>';
-  let isFriend=friends.some(x=>x.handle===h);
-  let isSelf=f.handle===profile.handle;
+  if(error || !f)return sr.innerHTML='<p class="muted">該当するアカウントが見つかりません。</p>';
+  let isFriend=friends.some(x=>x.handle===f.handle);
+  let isSelf=f.id===myAuthId;
   sr.innerHTML=`<div class="friend-row"><div class="avatar">${safe(f.avatar||'🙂')}</div><div class="grow"><b>${safe(f.name)}</b><div class="handle">@${safe(f.handle)}</div></div><button class="btn" onclick="openProfile('${safe(f.handle)}')">プロフィール</button>${isSelf?'':isFriend?'<span class="muted">友達</span>':`<button class="btn primary" onclick="sendProfileFriendRequest('${safe(f.handle)}')">リクエスト送信</button>`}</div>`;
 }
 
@@ -769,7 +770,7 @@ if(loginAccBtn){
     const h=normalizeHandle(accHdl?accHdl.value:'');
     const pw=accPw?accPw.value:'';
 
-    if(!sb)return authRms('接続エラー');
+    if(!sb)return authMsg('接続エラー');
     let {data,error}=await sb.auth.signInWithPassword({email:emailFor(h),password:pw});
     if(error)return authMsg('アカウント名かパスワードが違います');
     myAuthId=data.user.id;
