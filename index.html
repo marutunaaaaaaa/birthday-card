@@ -66,15 +66,14 @@
       <button class="btn primary" id="createAccount" style="width:100%;padding:13px">アカウントを作成して進む</button>
       <button class="btn" id="loginAccount" style="width:100%;margin-top:8px">すでにアカウントがある人はログイン</button>
       <div id="authMsg" style="color:#c84d75;font-size:13px;font-weight:700;margin:12px 2px 0;min-height:18px;text-align:center;overflow-wrap:anywhere"></div>
-      <div class="onboard-note">パスワードを忘れた時の再設定は、まだできません。忘れないようにメモしておいてね。ログインにはアカウント名とパスワードを使います。</div>
+      <div class="onboard-note">ログインにはアカウント名とパスワードを使います。</div>
     </section>
     <section class="onboard-step" id="onboardGroups">
       <h1 class="onboard-title">どこでお祝いする？</h1>
-      <div class="onboard-sub">グループはあとからいくつでも追加できます。<br>クラス・部活・仲良しグループなど、使い方に合わせて選んでね。</div>
+      <div class="onboard-sub">グループはあとからいくつでも追加できます。</div>
       <button class="onboard-choice" id="onboardJoin"><span class="ico">🔑</span><span><b>グループに参加する</b><small>招待されたグループの名前と合言葉を入力して参加します。</small></span></button>
       <button class="onboard-choice" id="onboardMake"><span class="ico">✨</span><span><b>グループを作成する</b><small>自分でグループ名と参加用パスワードを決めて、友達を招待します。</small></span></button>
       <button class="btn" id="onboardLater" style="width:100%;margin-top:8px">あとで設定する</button>
-      <div class="onboard-note">グループは、同じメンバーでカードを送り合うための場所です。参加用パスワードは、関係のある人だけに共有してね。</div>
     </section>
   </div>
 </div>
@@ -111,6 +110,20 @@
 </div></main>
 <div id="profilePage" class="profilepage"><div class="profilepage-inner"><div id="profilePageContent"></div></div></div><div id="cardPage" class="cardpage"><div class="cardpage-inner"><div class="cardpage-top"><button class="btn" id="backFromCards">← 戻る</button><span class="muted">🎂 おめでとポスト</span></div><div id="cardPageContent"></div></div></div>
 <div class="modal" id="modal"><div class="dialog"><h3 id="modalTitle"></h3><div id="modalBody"></div><button class="btn" id="close">閉じる</button></div></div><div class="toast" id="toast"></div><div class="confetti" id="confetti" style="display:none"></div><div class="logout-gate" id="logoutGate"><div class="logout-card"><div style="font-size:42px">🎂</div><h2>ログアウトしました</h2><p class="muted">ログアウトしました。ログインし直してね。</p><button class="btn primary" id="demoLoginAgain">ログイン画面に戻る</button></div></div>
+
+<!-- LINEで開いた際に標準のSafari（またはブラウザ）で開き直させるためのメタタグ -->
+<meta name="apple-itunes-app" content="app-id=">
+<script>
+// LINE内ブラウザ（UAにLIFFやLine含む）でアクセスされた場合、外部ブラウザへ誘導または自動リダイレクトする処理
+if(navigator.userAgent.includes('Line') || navigator.userAgent.includes('LIFF')) {
+  // すでに ?openExternalBrowser=1 がついていなければ付与してリダイレクト
+  if(!window.location.href.includes('openExternalBrowser=1')) {
+    let separator = window.location.href.includes('?') ? '&' : '?';
+    window.location.href = window.location.href + separator + 'openExternalBrowser=1';
+  }
+}
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 let cards=[];
@@ -123,6 +136,9 @@ let savedCardIds=[];
 let reports=[];
 let mediaDraft='';
 let myAuthId=null;
+
+// あなたの管理用アカウント名（ここを自分のアカウント名にすればあなただけBANできるよ）
+const ADMIN_HANDLE='owner_admin'; 
 
 const avatarChoices=['🙂','😎','🐱','🐶','🐰','🦊','🐻','🐼','🐸','🌸','⭐','🎧','⚽','🎨','🎮','🧸'];
 const $=id=>document.getElementById(id);
@@ -178,10 +194,14 @@ async function loadServerData(){
 }
 
 function recipientList(){
-  return friends.map(f=>({id:'friend:'+f.handle,name:f.name,emoji:f.avatar||'🙂',date:(f.birthdayVisibility==='private'?'':birthdayLabel(f.birthday)),userId:f.id,handle:f.handle}));
+  let list = friends.map(f=>({id:'friend:'+f.handle,name:f.name,emoji:f.avatar||'🙂',date:(f.birthdayVisibility==='private'?'':birthdayLabel(f.birthday)),userId:f.id,handle:f.handle}));
+  // 自分自身も宛先に追加（自分の誕生日カードを見る・送るため）
+  list.unshift({id:'friend:'+profile.handle,name:profile.name+' (自分)',emoji:profile.avatar||'🙂',date:birthdayLabel(profile.birthday),userId:myAuthId,handle:profile.handle});
+  return list;
 }
 
 function profileForHandle(h){
+  if(h===profile.handle)return profile;
   return friends.find(f=>f.handle===h)||null;
 }
 
@@ -224,7 +244,10 @@ function openProfile(handle){
 }
 window.editOwnProfile=()=>{document.getElementById('profilePage').classList.remove('show');tab('profile')};
 window.openProfile=openProfile;
-window.openProfileBirthday=handle=>{if(handle!==profile.handle&&!friends.some(f=>f.handle===handle))return toast('友達になってからカードを見られるよ');$('profilePage').classList.remove('show');showBirthday(handle===profile.handle?'friend:'+profile.handle:'friend:'+handle)};
+window.openProfileBirthday=handle=>{
+  $('profilePage').classList.remove('show');
+  showBirthday('friend:'+handle);
+};
 
 function showBirthday(id){
   let p=recipientList().find(x=>x.id===id);
@@ -328,6 +351,26 @@ function daysUntilBirthday(dateText){
  if(next<now)next=new Date(now.getFullYear()+1,parts.month-1,parts.day);
  return Math.round((next-now)/86400000);
 }
+
+// 🎂 誕生日から1週間前後（前後7日以内、または当日）かどうかを判定する関数
+function isWithinBirthdayWeek(dateText){
+  const parts = dateParts(dateText);
+  if(!parts) return true; // 日付未設定なら制限なしまたは許容
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  let bDayThisYear = new Date(now.getFullYear(), parts.month-1, parts.day);
+  let diffDays = Math.round((now - bDayThisYear) / 86400000);
+  // 前後7日以内（diffDaysが -7 から +7 の間、または来年・昨年の同日付近）
+  let daysFromThisYear = Math.abs(diffDays);
+  let nextYearBDay = new Date(now.getFullYear()+1, parts.month-1, parts.day);
+  let prevYearBDay = new Date(now.getFullYear()-1, parts.month-1, parts.day);
+  let daysFromNextYear = Math.abs(Math.round((now - nextYearBDay) / 86400000));
+  let daysFromPrevYear = Math.abs(Math.round((now - prevYearBDay) / 86400000));
+  
+  let minDays = Math.min(daysFromThisYear, daysFromNextYear, daysFromPrevYear);
+  return minDays <= 7;
+}
+
 function birthdayLabel(iso){const p=dateParts(iso);return p?`${p.month}月${p.day}日`:''}
 function normalizeHandle(h){return String(h||'').trim().replace(/^@/,'').toLowerCase()}
 
@@ -362,13 +405,39 @@ function loadSavedCards(){
 }
 
 function renderAdmin(){
- const ag=$('adminGroups');if(ag)ag.innerHTML=groups.map(g=>`<div class="feature-item"><b>${safe(g.name)}</b><div class="muted">グループID: ${safe(g.id)}</div></div>`).join('');
-}
-function renderReports(){
+ const ag=$('adminGroups');
+ if(ag) {
+   ag.innerHTML=groups.map(g=>`<div class="feature-item"><b>${safe(g.name)}</b><div class="muted">グループID: ${safe(g.id)}</div><button class="btn small-btn" style="margin-top:6px;background:#ffe8ef;color:#d9587b;" onclick="leaveGroup('${g.id}')">🚪 グループから抜ける</button></div>`).join('');
+ }
+ 
  const rq=$('reportQueue');
  if(rq){
-   rq.innerHTML=reports.length?reports.map(r=>`<div class="report-row"><div class="grow"><b>理由: ${safe(r.reason)}</b><div class="muted">プレビュー: ${safe(r.preview)}</div></div></div>`).join(''):'<div class="muted">現在、通報はありません。</div>';
+   // 管理者（ADMIN_HANDLE）だけがBANやカード削除を実行できるようにする
+   let isAdmin = profile.handle === ADMIN_HANDLE;
+   rq.innerHTML=reports.length?reports.map(r=>`<div class="report-row"><div class="grow"><b>理由: ${safe(r.reason)}</b><div class="muted">プレビュー: ${safe(r.preview)}</div></div>${isAdmin?`<button class="btn small-btn primary" onclick="adminBanAction('${safe(r.card_id)}')">BAN・削除</button>`:''}</div>`).join(''):'<div class="muted">現在、通報はありません。</div>';
  }
+}
+
+window.leaveGroup=async groupId=>{
+  if(!confirm('本当にこのグループから抜けますか？')) return;
+  groups = groups.filter(g=>g.id !== groupId);
+  render();
+  toast('グループから抜けました');
+};
+
+window.adminBanAction=async cardId=>{
+  if(profile.handle !== ADMIN_HANDLE) return toast('管理者権限がありません');
+  if(!confirm('このカードを削除し、関連ユーザーを制限しますか？')) return;
+  if(sb) {
+    await sb.from('cards').delete().eq('id', cardId);
+  }
+  cards = cards.filter(c => c.id !== cardId);
+  render();
+  toast('対応を実行しました');
+};
+
+function renderReports(){
+ renderAdmin();
 }
 
 let calendarCursor=new Date();calendarCursor.setDate(1);
@@ -406,7 +475,7 @@ function render(){
  const ao=$('avatarOptions');if(ao)ao.innerHTML=avatarChoices.map(a=>`<button type="button" class="avatar-choice ${profile.avatar===a?'sel':''}" data-avatar="${a}">${a}</button>`).join('');
  const pp=$('people');if(pp)pp.innerHTML=recipientList().map(p=>{let days=daysUntilBirthday(p.date);return `<div class="person"><div class="avatar">${p.emoji}</div><div class="grow"><b>${p.name}</b><div class="muted">${p.date} 生まれ · ${days===0?'今日が誕生日！':`あと${days}日`}</div></div><button class="btn" onclick="showBirthday('${p.id}')">カードを見る</button><button class="btn primary" onclick="pick('${p.id}')">書く</button></div>`}).join('');
  const toEl=$('to');if(toEl)toEl.innerHTML=recipientList().map(p=>`<option value="${p.id}">${safe(p.name)}</option>`).join('');
- const gl=$('groupList');if(gl)gl.innerHTML=groups.length?groups.map(g=>`<div class="group"><div class="avatar">🏫</div><div class="grow"><b>${safe(g.name)}</b><div class="muted">参加中</div></div></div>`).join(''):'<div class="muted">参加しているグループはありません。</div>';
+ const gl=$('groupList');if(gl)gl.innerHTML=groups.length?groups.map(g=>`<div class="group"><div class="avatar">🏫</div><div class="grow"><b>${safe(g.name)}</b><div class="muted">参加中</div></div><button class="btn small-btn" style="background:#ffe8ef;color:#d9587b;" onclick="leaveGroup('${g.id}')">🚪 抜ける</button></div>`).join(''):'<div class="muted">参加しているグループはありません。</div>';
  const nameEl=$('name');if(nameEl)nameEl.value=profile.name;
  const bthEl=$('birthday');if(bthEl)bthEl.value=profile.birthday;
  const bthVis=$('birthdayVisibility');if(bthVis)bthVis.value=profile.birthdayVisibility||'friends';
@@ -456,6 +525,12 @@ if(sendBtn){
     let recipientObj=recipientList().find(x=>x.id===toId);
     if(!recipientObj)return toast('宛先の友達を選んでね');
     
+    // 🎂 誕生日カードを送れるのは誕生日1週間前後であるかのチェック
+    let targetBirthday = (recipientObj.userId === myAuthId) ? profile.birthday : (recipientObj.birthday || '');
+    if(targetBirthday && !isWithinBirthdayWeek(targetBirthday)){
+      return toast('🎁 誕生日カードは、誕生日の1週間前から当日以降の期間だけ送ることができます！');
+    }
+
     const sndEl=$('sender');
     const visEl=$('cardVisibility');
     let {error}=await sb.from('cards').insert({
