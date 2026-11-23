@@ -61,20 +61,20 @@
     <section class="onboard-step active" id="onboardAccount">
       <h1 class="onboard-title">はじめまして！</h1>
       <div class="onboard-sub">まずはアカウントを作って、<br>お祝いの場所を準備しよう。</div>
-      <div class="field"><label>ニックネーム（みんなに表示する名前）</label><input id="accountName" maxlength="20" placeholder="ニックネームを入力"></div><div class="field"><label>アカウント名（英数字・重複不可）</label><input id="accountHandle" maxlength="20" placeholder="英小文字・数字・_（3〜20文字）" autocomplete="username"><div class="muted">半角英小文字・数字・_ が使えるよ。友達検索に使う名前です。</div></div>
+      <div class="field"><label>ニックネーム（みんなに表示する名前）</label><input id="accountName" maxlength="20" placeholder="ニックネームを入力"></div>
+      <div class="field"><label>アカウント名（英数字・重複不可）</label><input id="accountHandle" maxlength="20" placeholder="英小文字・数字・_（3〜20文字）" autocomplete="username"><div class="muted">半角英小文字・数字・_ が使えるよ。友達検索に使う名前です。</div></div>
       <div class="field"><label>パスワード</label><input id="accountPassword" type="password" minlength="6" placeholder="6文字以上"></div>
       <button class="btn primary" id="createAccount" style="width:100%;padding:13px">アカウントを作成して進む</button>
       <button class="btn" id="loginAccount" style="width:100%;margin-top:8px">すでにアカウントがある人はログイン</button>
       <div id="authMsg" style="color:#c84d75;font-size:13px;font-weight:700;margin:12px 2px 0;min-height:18px;text-align:center;overflow-wrap:anywhere"></div>
-      <div class="onboard-note">パスワードを忘れた時の再設定は、まだできません。忘れないようにメモしておいてね。ログインにはアカウント名とパスワードを使います。</div>
+      <div class="onboard-note">ログインにはアカウント名とパスワードを使います。</div>
     </section>
     <section class="onboard-step" id="onboardGroups">
       <h1 class="onboard-title">どこでお祝いする？</h1>
-      <div class="onboard-sub">グループはあとからいくつでも追加できます。<br>クラス・部活・仲良しグループなど、使い方に合わせて選んでね。</div>
+      <div class="onboard-sub">グループはあとからいくつでも追加できます。</div>
       <button class="onboard-choice" id="onboardJoin"><span class="ico">🔑</span><span><b>グループに参加する</b><small>招待されたグループの名前と合言葉を入力して参加します。</small></span></button>
       <button class="onboard-choice" id="onboardMake"><span class="ico">✨</span><span><b>グループを作成する</b><small>自分でグループ名と参加用パスワードを決めて、友達を招待します。</small></span></button>
       <button class="btn" id="onboardLater" style="width:100%;margin-top:8px">あとで設定する</button>
-      <div class="onboard-note">グループは、同じメンバーでカードを送り合うための場所です。参加用パスワードは、関係のある人だけに共有してね。</div>
     </section>
   </div>
 </div>
@@ -90,27 +90,30 @@
 <div class="field"><label>誰に送る？</label><select id="to"></select></div>
 <div class="field"><label>デザインを選ぶ</label><div class="designs"><button class="design sel" data-design="pink"><b>🌸</b>ふんわり</button><button class="design" data-design="purple"><b>💜</b>パープル</button><button class="design" data-design="yellow"><b>🌼</b>ハッピー</button><button class="design" data-design="blue"><b>🫧</b>さわやか</button></div><div class="preview" id="preview"><div class="emoji">🌸</div><b>Happy Birthday!</b><div id="previewText" class="muted">メッセージのプレビュー</div></div></div>
 <div class="field"><label>メッセージ（300文字まで）</label><textarea id="msg" maxlength="300" placeholder="誕生日おめでとう！素敵な一年になりますように！"></textarea><div class="muted" id="charCount" style="text-align:right">0 / 300文字</div></div>
-<div class="field"><label>💡 メッセージに迷ったら</label><div class="btnrow" id="messagePrompts"><button type="button" class="btn prompt" data-prompt="一緒に過ごした時間で、特に楽しかったのは">思い出を書く</button><button type="button" class="btn prompt" data-prompt="いつもありがとう。特に感謝しているのは">感謝を伝える</button><button type="button" class="btn prompt" data-prompt="これから一緒にやってみたいことは">未来の話を書く</button></div><div class="muted" style="margin-top:7px">押すと書き出しが入力されるよ。自分の言葉で続きを書いてね。</div></div>
-<div class="muted" id="draftStatus" style="margin:8px 0">下書きは自動保存されます（この端末のみ）。</div>
-<div class="btnrow" style="margin-bottom:12px"><button type="button" class="btn" id="clearDraft">下書きを消す</button></div>
-<div class="field"><label>📷 写真・GIFを添える（任意）</label><input id="cardMedia" type="file" accept="image/*,.gif"><div class="muted">画像またはGIFを1枚添付できます。</div><div id="mediaPreview"></div></div><div class="field"><label>カードに表示する名前</label><input id="sender" placeholder="ニックネーム"></div><div class="field"><label>このカードの公開範囲</label><select id="cardVisibility"><option value="friends">友達にも公開する</option><option value="private">宛先の本人だけに見せる</option></select><div class="muted">公開するかどうかは、カードを書く人が1枚ごとに選べます。</div></div><button class="btn primary" id="send">カードを送る 🎁</button></div></section>
-<section id="groups" class="panel"><h2>🏫 グループ</h2><div class="card"><p>学校・クラス・部活・友達グループなど、いくつでも参加できる想定です。</p><div class="notice">本番版では、グループごとに招待パスワードを設定し、サーバー側で参加資格を確認します。</div><div class="btnrow"><button class="btn primary" id="make">＋ グループを作成</button><button class="btn" id="join">🔑 パスワードで参加</button></div></div><div class="section">参加しているグループ</div><div class="card" id="groupList"></div><input type="file" id="groupPhotoInput" accept="image/*" hidden><div class="section">📩 参加承認されたグループ</div><div class="card" id="groupApprovals"><div class="muted">承認待ちのグループはありません。</div></div></section>
+<div class="field"><label>💡 メッセージに迷ったら</label><div class="btnrow" id="messagePrompts"><button type="button" class="btn prompt" data-prompt="一緒に過ごした時間で、特に楽しかったのは">思い出を書く</button><button type="button" class="btn prompt" data-prompt="いつもありがとう。特に感謝しているのは">感謝を伝える</button><button type="button" class="btn prompt" data-prompt="これから一緒にやってみたいことは">未来の話を書く</button></div></div>
+<div class="field"><label>📷 写真・GIFを添える（任意）</label><input id="cardMedia" type="file" accept="image/*,.gif"><div id="mediaPreview"></div></div>
+<div class="field"><label>カードに表示する名前</label><input id="sender" placeholder="ニックネーム"></div>
+<div class="field"><label>このカードの公開範囲</label><select id="cardVisibility"><option value="friends">友達にも公開する</option><option value="private">宛先の本人だけに見せる</option></select></div>
+<button class="btn primary" id="send">カードを送る 🎁</button></div></section>
+<section id="groups" class="panel"><h2>🏫 グループ</h2><div class="card"><p>学校・クラス・部活・友達グループなど。</p><div class="btnrow"><button class="btn primary" id="make">＋ グループを作成</button><button class="btn" id="join">🔑 パスワードで参加</button></div></div><div class="section">参加しているグループ</div><div class="card" id="groupList"></div></section>
 <section id="friends" class="panel"><h2>🤝 友達</h2>
 <div class="card"><p>アカウント名で検索して友達リクエストを送ろう。</p><div class="inline-input"><input id="friendSearch" placeholder="例：sakura_25（@は不要）"><button class="btn primary" id="searchFriend">検索する</button></div><div id="friendSearchResult"></div></div>
 <div class="section">📨 受信したリクエスト</div><div class="card" id="incomingRequests"><div class="muted">受信したリクエストはありません。</div></div>
 <div class="section">📤 送信したリクエスト</div><div class="card" id="outgoingRequests"><div class="muted">送信中のリクエストはありません。</div></div>
 <div class="section">💗 友達一覧</div><div class="card" id="friendList"><div class="muted">まだ友達はいません。</div></div>
 </section>
-<section id="calendar" class="panel"><h2>🗓️ 誕生日カレンダー</h2><p class="muted">友達やグループの誕生日を月ごとに確認できるよ。</p><div class="card"><div class="row" style="display:flex;align-items:center;justify-content:space-between;gap:10px"><button class="btn" id="calPrev">← 前の月</button><h3 id="calTitle" style="margin:0"></h3><button class="btn" id="calNext">次の月 →</button></div><div id="calendarGrid" class="calendar-grid" style="margin-top:14px"></div><div class="section">この月の誕生日</div><div id="calendarEvents"></div></div></section>
+<section id="calendar" class="panel"><h2>🗓️ 誕生日カレンダー</h2><p class="muted">友達の誕生日を確認できるよ。</p><div class="card"><div class="row" style="display:flex;align-items:center;justify-content:space-between;gap:10px"><button class="btn" id="calPrev">← 前の月</button><h3 id="calTitle" style="margin:0"></h3><button class="btn" id="calNext">次の月 →</button></div><div id="calendarGrid" class="calendar-grid" style="margin-top:14px"></div><div class="section">この月の誕生日</div><div id="calendarEvents"></div></div></section>
 <section id="album" class="panel"><h2>📚 思い出アルバム</h2><p class="muted">大切に残しておきたいカードを保存できます。</p><div class="card" id="savedCards"><div class="muted">保存したカードはここに表示されます。</div></div></section>
 <section id="manage" class="panel"><h2>🛡️ 管理・通報</h2>
-<div class="card"><h3>グループ管理</h3><p class="muted">自分が作成したグループのメンバーや投稿を確認できます。</p><div id="adminGroups"></div></div>
-<div class="section">🚩 通報されたカード</div><div class="card" id="reportQueue"><div class="muted">現在、通報はありません。</div></div><div class="section">⛔ BAN・利用停止ユーザー</div><div class="card" id="banQueue"><div class="muted">BANされたユーザーはいません。</div></div>
+<div class="card"><h3>グループ管理</h3><div id="adminGroups"></div></div>
+<div class="section">🚩 通報されたカード</div><div class="card" id="reportQueue"><div class="muted">現在、通報はありません。</div></div>
 </section>
-<section id="profile" class="panel"><h2>👤 プロフィール</h2><div class="card"><div class="field"><label>自分のアイコン</label><div class="profile-head"><div id="profileAvatar" class="profile-avatar">🙂</div><div><div class="muted">好きな絵文字を選ぶか、画像をアップロードできるよ。</div><label class="btn" for="avatarUpload" style="display:inline-block;margin-top:8px;cursor:pointer">画像を選ぶ</label><input id="avatarUpload" type="file" accept="image/*" style="display:none"></div></div><div class="avatar-options" id="avatarOptions" style="margin-top:12px"></div></div><div class="field"><label>ニックネーム</label><input id="name" placeholder="名前"></div><div class="field"><label>アカウント名</label><input id="profileHandle" readonly></div><div class="field"><label>誕生日</label><input id="birthday" type="date"></div><div class="field"><label>誕生日の公開範囲</label><select id="birthdayVisibility"><option value="public">全体に公開</option><option value="friends">友達まで公開</option><option value="group">同じグループのメンバーまで</option><option value="private">非公開</option></select><div class="muted">非公開にすると、プロフィールやカレンダーにも表示されません。</div></div><div class="field"><label>ひとこと</label><input id="bio" placeholder="よろしく！"></div><div class="field"><label>🎁 ほしい物リスト</label><textarea id="wishlist" rows="4" placeholder="例：本、文房具、好きなキャラクターのグッズなど&#10;ほしい物を改行して入力してね"></textarea><div class="muted">友達に見てもらえるリストだよ。</div></div><button class="btn primary" id="saveProfile">保存する</button></div></div></section>
+<section id="profile" class="panel"><h2>👤 プロフィール</h2><div class="card"><div class="field"><label>自分のアイコン</label><div class="profile-head"><div id="profileAvatar" class="profile-avatar">🙂</div><div><label class="btn" for="avatarUpload" style="display:inline-block;margin-top:8px;cursor:pointer">画像を選ぶ</label><input id="avatarUpload" type="file" accept="image/*" style="display:none"></div></div><div class="avatar-options" id="avatarOptions" style="margin-top:12px"></div></div><div class="field"><label>ニックネーム</label><input id="name" placeholder="名前"></div><div class="field"><label>アカウント名</label><input id="profileHandle" readonly></div><div class="field"><label>誕生日</label><input id="birthday" type="date"></div><div class="field"><label>誕生日の公開範囲</label><select id="birthdayVisibility"><option value="public">全体に公開</option><option value="friends">友達まで公開</option><option value="private">非公開</option></select></div><div class="field"><label>ひとこと</label><input id="bio" placeholder="よろしく！"></div><div class="field"><label>🎁 ほしい物リスト</label><textarea id="wishlist" rows="4" placeholder="ほしい物を改行して入力してね"></textarea></div><button class="btn primary" id="saveProfile">保存する</button></div></div></section>
 </div></main>
-<div id="profilePage" class="profilepage"><div class="profilepage-inner"><div id="profilePageContent"></div></div></div><div id="cardPage" class="cardpage"><div class="cardpage-inner"><div class="cardpage-top"><button class="btn" id="backFromCards">← 戻る</button><span class="muted">🎂 おめでとポスト</span></div><div id="cardPageContent"></div></div></div>
-<div class="modal" id="modal"><div class="dialog"><h3 id="modalTitle"></h3><div id="modalBody"></div><button class="btn" id="close">閉じる</button></div></div><div class="toast" id="toast"></div><div class="logout-gate" id="logoutGate"><div class="logout-card"><div style="font-size:42px">🎂</div><h2>ログアウトしました</h2><p class="muted">ログアウトしました。ログインし直してね。</p><button class="btn primary" id="demoLoginAgain">ログイン画面に戻る</button></div></div>
+<div id="profilePage" class="profilepage"><div class="profilepage-inner"><div id="profilePageContent"></div></div></div>
+<div id="cardPage" class="cardpage"><div class="cardpage-inner"><div class="cardpage-top"><button class="btn" id="backFromCards">← 戻る</button><span class="muted">🎂 おめでとポスト</span></div><div id="cardPageContent"></div></div></div>
+<div class="modal" id="modal"><div class="dialog"><h3 id="modalTitle"></h3><div id="modalBody"></div><button class="btn" id="close">閉じる</button></div></div><div class="toast" id="toast"></div><div class="confetti" id="confetti" style="display:none"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 let cards=[];
@@ -121,17 +124,16 @@ let friends=[];
 let friendRequests={incoming:[],outgoing:[]};
 let savedCardIds=[];
 let reports=[];
-let groupJoinRequests=[];
-let bannedUsers=[];
 let mediaDraft='';
 let myAuthId=null;
 
 const avatarChoices=['🙂','😎','🐱','🐶','🐰','🦊','🐻','🐼','🐸','🌸','⭐','🎧','⚽','🎨','🎮','🧸'];
 const $=id=>document.getElementById(id);
-const safe=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;min'}[c]||c));
+const safe=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c));
 function toast(t){const el=$('toast');if(el){el.textContent=t;el.style.display='block';setTimeout(()=>el.style.display='none',2100)}}
 function tab(t){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===t));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));if(t==='friends')loadFriends();if(t==='calendar')renderCalendar();if(t==='album')loadSavedCards();if(t==='manage'){renderAdmin();renderReports()}}
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
+
 const logoutBtn=$('logoutButton');if(logoutBtn)logoutBtn.onclick=()=>modal('ログアウトしますか？','<p>アカウントからログアウトします。</p><div class="btnrow"><button class="btn primary" id="confirmLogout">ログアウト</button><button class="btn" id="cancelAction">キャンセル</button></div>');
 const loginAgainBtn=$('demoLoginAgain');if(loginAgainBtn)loginAgainBtn.onclick=()=>{location.reload()};
 
@@ -163,10 +165,13 @@ async function loadServerData(){
   }
   let {data:cs}=await sb.from('cards').select('*').or(`sender.eq.${myAuthId},recipient.eq.${myAuthId}`);
   if(cs){
-    cards=cs.map(c=>({id:c.id,to:'friend:'+c.recipient_handle,recipientId:c.recipient,from:c.sender_name,senderId:c.sender_handle,msg:c.msg,design:c.design,visibility:c.visibility,media:c.media,likes:0,likesBy:[]}));
+    cards=cs.map(c=>({id:c.id,to:'friend:'+c.recipient_handle,recipientId:c.recipient,from:c.sender_name,senderId:c.sender_handle,msg:c.msg,design:c.design,visibility:c.visibility,media:c.media}));
   }
   let {data:sv}=await sb.from('card_saves').select('card_id').eq('user_id',myAuthId);
   if(sv) savedCardIds=sv.map(s=>s.card_id);
+
+  let {data:rep}=await sb.from('reports').select('*');
+  if(rep) reports=rep;
 
   render();
 }
@@ -212,8 +217,8 @@ function openProfile(handle){
    </div>
   </div>`;
   $('profilePage').classList.add('show');
-  window.__profileHandle=handle;
-  $('backFromProfileInner').onclick=()=>$('profilePage').classList.remove('show');
+  const bfi=$('backFromProfileInner');
+  if(bfi)bfi.onclick=()=>$('profilePage').classList.remove('show');
 }
 window.editOwnProfile=()=>{document.getElementById('profilePage').classList.remove('show');tab('profile')};
 window.openProfile=openProfile;
@@ -232,7 +237,7 @@ function cardMarkup(c){
   let saved=savedCardIds.includes(c.id);
   let media=c.media?`<img class="card-media" src="${c.media}" alt="添付画像">`:'';
   let isMyCard=c.senderId===profile.handle;
-  return `<article class="singlecard reveal" style="background:${st[0]}"><div class="big">${st[1]}</div><div style="font-weight:800;margin-top:8px">Happy Birthday!</div>${media}<div class="message-text">${safe(c.msg)}</div><div class="card-meta">From ${safe(c.from)}</div>${isMyCard?`<div class="btnrow" style="margin-top:8px"><button class="btn small-btn" onclick="deleteCard('${c.id}')">🗑️ 削除</button></div>`:''}<div style="margin-top:18px"><button class="saved-btn ${saved?'on':''}" onclick="saveCard('${c.id}')">${saved?'✓ 保存済み':'📚 アルバムに保存'}</button></div></article>`;
+  return `<article class="singlecard reveal" style="background:${st[0]}"><div class="big">${st[1]}</div><div style="font-weight:800;margin-top:8px">Happy Birthday!</div>${media}<div class="message-text">${safe(c.msg)}</div><div class="card-meta">From ${safe(c.from)}</div>${isMyCard?`<div class="btnrow" style="margin-top:8px"><button class="btn small-btn" onclick="deleteCard('${c.id}')">🗑️ 削除</button></div>`:''}<div style="margin-top:18px"><button class="saved-btn ${saved?'on':''}" onclick="saveCard('${c.id}')">${saved?'✓ 保存済み':'📚 アルバムに保存'}</button><button class="report-btn" onclick="reportCard('${c.id}')">🚩 通報</button></div></article>`;
 }
 
 window.deleteCard=async cardId=>{
@@ -251,11 +256,34 @@ window.saveCard=async cardId=>{
   }else{
     await sb.from('card_saves').insert({card_id:cardId,user_id:myAuthId});
     savedCardIds.push(cardId);
-    toast('アルバムに保存したよ');
+    triggerConfetti();
+    toast('アルバムに保存したよ！✨');
   }
   loadSavedCards();
   render();
 };
+
+window.reportCard=async cardId=>{
+  let reason=prompt('通報の理由を入力してください（例：不適切な内容など）');
+  if(!reason)return;
+  if(!sb)return;
+  let targetCard=cards.find(c=>c.id===cardId);
+  await sb.from('reports').insert({
+    reporter:myAuthId,
+    card_id:cardId,
+    reason:reason,
+    preview:targetCard?targetCard.msg.slice(0,50):''
+  });
+  toast('通報を受け付けました。管理者に送信されました。');
+};
+
+function triggerConfetti(){
+  const c=$('confetti');
+  if(!c)return;
+  c.style.display='flex';
+  c.innerHTML='<span>🎉</span><span>✨</span><span>🎊</span><span>⭐</span><span>🎈</span>';
+  setTimeout(()=>{c.style.display='none';c.innerHTML='';},2200);
+}
 
 function dateParts(value){
  const nums=String(value||'').match(/[0-9]+/g);
@@ -275,9 +303,9 @@ function birthdayLabel(iso){const p=dateParts(iso);return p?`${p.month}月${p.da
 function normalizeHandle(h){return String(h||'').trim().replace(/^@/,'').toLowerCase()}
 
 function loadFriends(){
- $('friendList').innerHTML=friends.length?friends.map(f=>`<div class="friend-row"><div class="avatar">${safe(f.avatar||'🙂')}</div><div class="grow"><b>${safe(f.name)}</b><div class="handle">@${safe(f.handle)}</div></div><button class="btn small-btn" onclick="openProfile('${safe(f.handle)}')">プロフィール</button></div>`).join(''):'<div class="muted">まだ友達はいません。検索してリクエストを送ってみよう。</div>';
- $('incomingRequests').innerHTML=friendRequests.incoming.length?friendRequests.incoming.map(r=>`<div class="request-block"><div class="friend-row"><div class="avatar">${safe(r.avatar||'🙂')}</div><div class="grow"><b>${safe(r.name)}</b><div class="handle">@${safe(r.handle)}</div></div><button class="btn primary small-btn" onclick="acceptFriendRequest('${r.id}')">承認</button></div></div>`).join(''):'<div class="muted">受信したリクエストはありません。</div>';
- $('outgoingRequests').innerHTML=friendRequests.outgoing.length?friendRequests.outgoing.map(r=>`<div class="friend-row"><div class="avatar">${safe(r.avatar||'🙂')}</div><div class="grow"><b>${safe(r.name)}</b><div class="handle">@${safe(r.handle)} · 承認待ち</div></div></div>`).join(''):'<div class="muted">送信中のリクエストはありません。</div>';
+ const fl=$('friendList');if(fl)fl.innerHTML=friends.length?friends.map(f=>`<div class="friend-row"><div class="avatar">${safe(f.avatar||'🙂')}</div><div class="grow"><b>${safe(f.name)}</b><div class="handle">@${safe(f.handle)}</div></div><button class="btn small-btn" onclick="openProfile('${safe(f.handle)}')">プロフィール</button></div>`).join(''):'<div class="muted">まだ友達はいません。検索してリクエストを送ってみよう。</div>';
+ const ir=$('incomingRequests');if(ir)ir.innerHTML=friendRequests.incoming.length?friendRequests.incoming.map(r=>`<div class="request-block"><div class="friend-row"><div class="avatar">${safe(r.avatar||'🙂')}</div><div class="grow"><b>${safe(r.name)}</b><div class="handle">@${safe(r.handle)}</div></div><button class="btn primary small-btn" onclick="acceptFriendRequest('${r.id}')">承認</button></div></div>`).join(''):'<div class="muted">受信したリクエストはありません。</div>';
+ const or=$('outgoingRequests');if(or)or.innerHTML=friendRequests.outgoing.length?friendRequests.outgoing.map(r=>`<div class="friend-row"><div class="avatar">${safe(r.avatar||'🙂')}</div><div class="grow"><b>${safe(r.name)}</b><div class="handle">@${safe(r.handle)} · 承認待ち</div></div></div>`).join(''):'<div class="muted">送信中のリクエストはありません。</div>';
 }
 
 window.acceptFriendRequest=async requesterUuid=>{
@@ -300,14 +328,18 @@ window.sendProfileFriendRequest=async handle=>{
 
 function loadSavedCards(){
  let saved=cards.filter(c=>savedCardIds.includes(c.id));
- $('savedCards').innerHTML=saved.length?saved.map(c=>`<div class="album-row"><div class="grow"><b>${safe(c.from)} からのカード</b><div class="muted">${safe(c.msg).slice(0,80)}</div></div><button class="btn small-btn" onclick="showBirthday('${c.to}')">開く</button></div>`).join(''):'<div class="muted">まだ保存したカードはありません。</div>';
+ const sc=$('savedCards');
+ if(sc)sc.innerHTML=saved.length?saved.map(c=>`<div class="album-row"><div class="grow"><b>${safe(c.from)} からのカード</b><div class="muted">${safe(c.msg).slice(0,80)}</div></div><button class="btn small-btn" onclick="showBirthday('${c.to}')">開く</button></div>`).join(''):'<div class="muted">まだ保存したカードはありません。</div>';
 }
 
 function renderAdmin(){
  const ag=$('adminGroups');if(ag)ag.innerHTML=groups.map(g=>`<div class="feature-item"><b>${safe(g.name)}</b><div class="muted">メンバー 1人</div></div>`).join('');
 }
 function renderReports(){
- const rq=$('reportQueue');if(rq)rq.innerHTML='<div class="muted">現在、通報はありません。</div>';
+ const rq=$('reportQueue');
+ if(rq){
+   rq.innerHTML=reports.length?reports.map(r=>`<div class="report-row"><div class="grow"><b>理由: ${safe(r.reason)}</b><div class="muted">プレビュー: ${safe(r.preview)}</div></div></div>`).join(''):'<div class="muted">現在、通報はありません。</div>';
+ }
 }
 
 let calendarCursor=new Date();calendarCursor.setDate(1);
@@ -476,6 +508,14 @@ document.addEventListener('click',e=>{
   if(target.id==='cancelAction'){const m=$('modal');if(m)m.classList.remove('show');}
 });
 
+const backFromCardsBtn=$('backFromCards');
+if(backFromCardsBtn){
+  backFromCardsBtn.onclick=()=>{
+    const cp=$('cardPage');
+    if(cp)cp.classList.remove('show');
+  };
+}
+
 const avatarOpts=$('avatarOptions');
 if(avatarOpts){
   avatarOpts.onclick=e=>{
@@ -528,14 +568,7 @@ if(saveProfBtn){
 }
 
 const onboarding=$('onboarding');
-function showOnboardStep(step){
-  const ac=$('onboardAccount');
-  const ag=$('onboardGroups');
-  if(ac)ac.classList.toggle('active',step==='account');
-  if(ag)ag.classList.toggle('active',step==='groups');
-}
 function finishOnboarding(){if(onboarding)onboarding.classList.remove('show');}
-
 function authMsg(t){const el=$('authMsg');if(el)el.textContent=t||''}
 
 const createAccBtn=$('createAccount');
