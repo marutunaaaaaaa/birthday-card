@@ -93,8 +93,8 @@
 <div class="field"><label>💡 メッセージに迷ったら</label><div class="btnrow" id="messagePrompts"><button type="button" class="btn prompt" data-prompt="一緒に過ごした時間で、特に楽しかったのは">思い出を書く</button><button type="button" class="btn prompt" data-prompt="いつもありがとう。特に感謝しているのは">感謝を伝える</button><button type="button" class="btn prompt" data-prompt="これから一緒にやってみたいことは">未来の話を書く</button></div><div class="muted" style="margin-top:7px">押すと書き出しが入力されるよ。自分の言葉で続きを書いてね。</div></div>
 <div class="muted" id="draftStatus" style="margin:8px 0">下書きは自動保存されます（この端末のみ）。</div>
 <div class="btnrow" style="margin-bottom:12px"><button type="button" class="btn" id="clearDraft">下書きを消す</button></div>
-<div class="field"><label>📷 写真・GIFを添える（任意）</label><input id="cardMedia" type="file" accept="image/*,.gif"><div class="muted">画像またはGIFを1枚添付できます。デモでは1.5MB以下。</div><div id="mediaPreview"></div></div><div class="field"><label>カードに表示する名前</label><input id="sender" placeholder="ニックネーム"></div><div class="field"><label>このカードの公開範囲</label><select id="cardVisibility"><option value="friends">友達にも公開する</option><option value="private">宛先の本人だけに見せる</option></select><div class="muted">公開するかどうかは、カードを書く人が1枚ごとに選ベます。</div></div><button class="btn primary" id="send">カードを送る 🎁</button></div></section>
-<section id="groups" class="panel"><h2>🏫 グループ</h2><div class="card"><p>学校・クラス・部活・友達グループなど、いくつでも参加できる想定です。</p><div class="notice">本番版では、グループごとに招待パスワードを設定し、サーバー側で参加資格を確認します。このデモでは安全な認証・共有はまだ行いません。</div><div class="btnrow"><button class="btn primary" id="make">＋ グループを作成</button><button class="btn" id="join">🔑 パスワードで参加</button></div></div><div class="section">参加しているグループ</div><div class="card" id="groupList"></div><input type="file" id="groupPhotoInput" accept="image/*" hidden><div class="section">📩 参加承認されたグループ</div><div class="card" id="groupApprovals"><div class="muted">承認待ちのグループはありません。</div></div></section>
+<div class="field"><label>📷 写真・GIFを添える（任意）</label><input id="cardMedia" type="file" accept="image/*,.gif"><div class="muted">画像またはGIFを1枚添付できます。</div><div id="mediaPreview"></div></div><div class="field"><label>カードに表示する名前</label><input id="sender" placeholder="ニックネーム"></div><div class="field"><label>このカードの公開範囲</label><select id="cardVisibility"><option value="friends">友達にも公開する</option><option value="private">宛先の本人だけに見せる</option></select><div class="muted">公開するかどうかは、カードを書く人が1枚ごとに選べます。</div></div><button class="btn primary" id="send">カードを送る 🎁</button></div></section>
+<section id="groups" class="panel"><h2>🏫 グループ</h2><div class="card"><p>学校・クラス・部活・友達グループなど、いくつでも参加できる想定です。</p><div class="notice">本番版では、グループごとに招待パスワードを設定し、サーバー側で参加資格を確認します。</div><div class="btnrow"><button class="btn primary" id="make">＋ グループを作成</button><button class="btn" id="join">🔑 パスワードで参加</button></div></div><div class="section">参加しているグループ</div><div class="card" id="groupList"></div><input type="file" id="groupPhotoInput" accept="image/*" hidden><div class="section">📩 参加承認されたグループ</div><div class="card" id="groupApprovals"><div class="muted">承認待ちのグループはありません。</div></div></section>
 <section id="friends" class="panel"><h2>🤝 友達</h2>
 <div class="card"><p>アカウント名で検索して友達リクエストを送ろう。</p><div class="inline-input"><input id="friendSearch" placeholder="例：sakura_25（@は不要）"><button class="btn primary" id="searchFriend">検索する</button></div><div id="friendSearchResult"></div></div>
 <div class="section">📨 受信したリクエスト</div><div class="card" id="incomingRequests"><div class="muted">受信したリクエストはありません。</div></div>
@@ -128,12 +128,12 @@ let myAuthId=null;
 
 const avatarChoices=['🙂','😎','🐱','🐶','🐰','🦊','🐻','🐼','🐸','🌸','⭐','🎧','⚽','🎨','🎮','🧸'];
 const $=id=>document.getElementById(id);
-const safe=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function toast(t){$('toast').textContent=t;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2100)}
+const safe=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;min'}[c]||c));
+function toast(t){const el=$('toast');if(el){el.textContent=t;el.style.display='block';setTimeout(()=>el.style.display='none',2100)}}
 function tab(t){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===t));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));if(t==='friends')loadFriends();if(t==='calendar')renderCalendar();if(t==='album')loadSavedCards();if(t==='manage'){renderAdmin();renderReports()}}
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
-$('logoutButton').onclick=()=>modal('ログアウトしますか？','<p>アカウントからログアウトします。</p><div class="btnrow"><button class="btn primary" id="confirmLogout">ログアウト</button><button class="btn" id="cancelAction">キャンセル</button></div>');
-$('demoLoginAgain').onclick=()=>{location.reload()};
+const logoutBtn=$('logoutButton');if(logoutBtn)logoutBtn.onclick=()=>modal('ログアウトしますか？','<p>アカウントからログアウトします。</p><div class="btnrow"><button class="btn primary" id="confirmLogout">ログアウト</button><button class="btn" id="cancelAction">キャンセル</button></div>');
+const loginAgainBtn=$('demoLoginAgain');if(loginAgainBtn)loginAgainBtn.onclick=()=>{location.reload()};
 
 const SUPABASE_URL='https://fnkmjsrpqxgbmdweoziy.supabase.co',SUPABASE_KEY='sb_publishable_xxIUF_g2ZJjqDyhnmNr36Q_kOUMgSCW';
 const sb=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
@@ -141,12 +141,10 @@ const emailFor=h=>h+'@omedeto-post.example.com';
 
 async function loadServerData(){
   if(!sb||!myAuthId)return;
-  // プロフィール取得
   let {data:p}=await sb.from('profiles').select('*').eq('id',myAuthId).maybeSingle();
   if(p){
     profile={name:p.name||'',handle:p.handle||'',birthday:p.birthday||'',bio:p.bio||'',avatar:p.avatar||'🙂',birthdayVisibility:p.birthday_visibility||'friends',wishlist:p.wishlist||''};
   }
-  // 友達取得
   let {data:fs}=await sb.from('friendships').select('*').or(`requester.eq.${myAuthId},addressee.eq.${myAuthId}`);
   if(fs){
     friends=[]; friendRequests.incoming=[]; friendRequests.outgoing=[];
@@ -163,12 +161,10 @@ async function loadServerData(){
       }
     }
   }
-  // カード取得
   let {data:cs}=await sb.from('cards').select('*').or(`sender.eq.${myAuthId},recipient.eq.${myAuthId}`);
   if(cs){
     cards=cs.map(c=>({id:c.id,to:'friend:'+c.recipient_handle,recipientId:c.recipient,from:c.sender_name,senderId:c.sender_handle,msg:c.msg,design:c.design,visibility:c.visibility,media:c.media,likes:0,likesBy:[]}));
   }
-  // アルバム取得
   let {data:sv}=await sb.from('card_saves').select('card_id').eq('user_id',myAuthId);
   if(sv) savedCardIds=sv.map(s=>s.card_id);
 
@@ -308,10 +304,10 @@ function loadSavedCards(){
 }
 
 function renderAdmin(){
- $('adminGroups').innerHTML=groups.map(g=>`<div class="feature-item"><b>${safe(g.name)}</b><div class="muted">メンバー 1人</div></div>`).join('');
+ const ag=$('adminGroups');if(ag)ag.innerHTML=groups.map(g=>`<div class="feature-item"><b>${safe(g.name)}</b><div class="muted">メンバー 1人</div></div>`).join('');
 }
 function renderReports(){
- $('reportQueue').innerHTML='<div class="muted">現在、通وردはありません。</div>';
+ const rq=$('reportQueue');if(rq)rq.innerHTML='<div class="muted">現在、通報はありません。</div>';
 }
 
 let calendarCursor=new Date();calendarCursor.setDate(1);
@@ -337,183 +333,293 @@ function renderCalendar(){
  let events=entries.filter(x=>x.month===m+1).sort((a,b)=>a.day-b.day);
  list.innerHTML=events.length?events.map(x=>`<div class="friend-row"><div class="avatar">${safe(x.avatar)}</div><div class="grow"><b>${x.month}月${x.day}日 · ${safe(x.name)}</b><div class="muted">${safe(x.source)}</div></div><button class="btn small-btn" onclick="openProfile('${safe(x.handle)}')">プロフィール</button></div>`).join(''):'<div class="muted">この月の誕生日はまだ登録されていません。</div>';
 }
-$('calPrev').onclick=()=>{calendarCursor.setMonth(calendarCursor.getMonth()-1);renderCalendar()};
-$('calNext').onclick=()=>{calendarCursor.setMonth(calendarCursor.getMonth()+1);renderCalendar()};
+const cp=$('calPrev');if(cp)cp.onclick=()=>{calendarCursor.setMonth(calendarCursor.getMonth()-1);renderCalendar()};
+const cn=$('calNext');if(cn)cn.onclick=()=>{calendarCursor.setMonth(calendarCursor.getMonth()+1);renderCalendar()};
 
 function avatarHTML(){return profile.avatar.startsWith('data:image/')?`<img src="${profile.avatar}" alt="アイコン">`:safe(profile.avatar)}
 
 function render(){
- $('who').textContent=profile.name?profile.name+' さん':'ログイン中';
- $('headerAvatar').innerHTML=avatarHTML();
- $('profileAvatar').innerHTML=avatarHTML();
- $('avatarOptions').innerHTML=avatarChoices.map(a=>`<button type="button" class="avatar-choice ${profile.avatar===a?'sel':''}" data-avatar="${a}">${a}</button>`).join('');
- $('people').innerHTML=recipientList().map(p=>{let days=daysUntilBirthday(p.date);return `<div class="person"><div class="avatar">${p.emoji}</div><div class="grow"><b>${p.name}</b><div class="muted">${p.date} 生まれ · ${days===0?'今日が誕生日！':`あと${days}日`}</div></div><button class="btn" onclick="showBirthday('${p.id}')">カードを見る</button><button class="btn primary" onclick="pick('${p.id}')">書く</button></div>`}).join('');
- $('to').innerHTML=recipientList().map(p=>`<option value="${p.id}">${safe(p.name)}</option>`).join('');
- $('groupList').innerHTML=groups.map(g=>`<div class="group"><div class="avatar">🏫</div><div class="grow"><b>${safe(g.name)}</b><div class="muted">参加中</div></div></div>`).join('');
- $('name').value=profile.name;
- $('birthday').value=profile.birthday;
- $('birthdayVisibility').value=profile.birthdayVisibility||'friends';
- $('bio').value=profile.bio;
- $('wishlist').value=profile.wishlist||'';
- $('sender').value=profile.name;
- $('profileHandle').value=profile.handle?'@'+profile.handle:'未設定';
+ const who=$('who');if(who)who.textContent=profile.name?profile.name+' さん':'ログイン中';
+ const ha=$('headerAvatar');if(ha)ha.innerHTML=avatarHTML();
+ const pa=$('profileAvatar');if(pa)pa.innerHTML=avatarHTML();
+ const ao=$('avatarOptions');if(ao)ao.innerHTML=avatarChoices.map(a=>`<button type="button" class="avatar-choice ${profile.avatar===a?'sel':''}" data-avatar="${a}">${a}</button>`).join('');
+ const pp=$('people');if(pp)pp.innerHTML=recipientList().map(p=>{let days=daysUntilBirthday(p.date);return `<div class="person"><div class="avatar">${p.emoji}</div><div class="grow"><b>${p.name}</b><div class="muted">${p.date} 生まれ · ${days===0?'今日が誕生日！':`あと${days}日`}</div></div><button class="btn" onclick="showBirthday('${p.id}')">カードを見る</button><button class="btn primary" onclick="pick('${p.id}')">書く</button></div>`}).join('');
+ const toEl=$('to');if(toEl)toEl.innerHTML=recipientList().map(p=>`<option value="${p.id}">${safe(p.name)}</option>`).join('');
+ const gl=$('groupList');if(gl)gl.innerHTML=groups.map(g=>`<div class="group"><div class="avatar">🏫</div><div class="grow"><b>${safe(g.name)}</b><div class="muted">参加中</div></div></div>`).join('');
+ const nameEl=$('name');if(nameEl)nameEl.value=profile.name;
+ const bthEl=$('birthday');if(bthEl)bthEl.value=profile.birthday;
+ const bthVis=$('birthdayVisibility');if(bthVis)bthVis.value=profile.birthdayVisibility||'friends';
+ const bioEl=$('bio');if(bioEl)bioEl.value=profile.bio;
+ const wlEl=$('wishlist');if(wlEl)wlEl.value=profile.wishlist||'';
+ const sndEl=$('sender');if(sndEl)sndEl.value=profile.name;
+ const prHdl=$('profileHandle');if(prHdl)prHdl.value=profile.handle?'@'+profile.handle:'未設定';
  loadFriends();
  loadSavedCards();
  renderCalendar();
 }
 
 window.showBirthday=showBirthday;
-window.pick=id=>{$('to').value=id;tab('write')};
+window.pick=id=>{const toEl=$('to');if(toEl)toEl.value=id;tab('write')};
 
 document.querySelectorAll('.design').forEach(b=>b.onclick=()=>{document.querySelectorAll('.design').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');design=b.dataset.design;preview()});
-function preview(){let em={pink:'🌸',purple:'💜',yellow:'🌼',blue:'🫧'}[design];$('preview').style.background={pink:'#fff0f4',purple:'#f1edff',yellow:'#fff8df',blue:'#eaf6ff'}[design];$('preview').querySelector('.emoji').textContent=em;$('previewText').textContent=$('msg').value||'メッセージのプレビュー'}
+function preview(){
+  const prev=$('preview');
+  if(!prev)return;
+  let em={pink:'🌸',purple:'💜',yellow:'🌼',blue:'🫧'}[design];
+  prev.style.background={pink:'#fff0f4',purple:'#f1edff',yellow:'#fff8df',blue:'#eaf6ff'}[design];
+  const emojiEl=prev.querySelector('.emoji');if(emojiEl)emojiEl.textContent=em;
+  const msgEl=$('msg');
+  const prevText=$('previewText');
+  if(prevText&&msgEl)prevText.textContent=msgEl.value||'メッセージのプレビュー';
+}
 
-$('msg').oninput=()=>{preview();updateDraftStatus();};
-function updateDraftStatus(){const n=$('msg').value.length;$('charCount').textContent=`${n} / 300文字`;}
+const msgInput=$('msg');
+if(msgInput){
+  msgInput.oninput=()=>{preview();updateDraftStatus();};
+}
+function updateDraftStatus(){
+  const cc=$('charCount');
+  const msgEl=$('msg');
+  if(cc&&msgEl)cc.textContent=`${msgEl.value.length} / 300文字`;
+}
 
-$('send').onclick=async()=>{
-  if(!$('msg').value.trim())return toast('メッセージを入力してね');
-  let toId=$('to').value;
-  let recipientObj=recipientList().find(x=>x.id===toId);
-  if(!recipientObj)return toast('宛先の友達を選んでね');
-  
-  let {error}=await sb.from('cards').insert({
-    sender:myAuthId,
-    recipient:recipientObj.userId,
-    sender_name:$('sender').value.trim()||'匿名',
-    msg:$('msg').value.trim(),
-    design:design,
-    visibility:$('cardVisibility').value,
-    media:mediaDraft
-  });
-  if(error)return toast('カードの送信に失敗しました：'+error.message);
+const sendBtn=$('send');
+if(sendBtn){
+  sendBtn.onclick=async()=>{
+    const msgEl=$('msg');
+    if(!msgEl||!msgEl.value.trim())return toast('メッセージを入力してね');
+    const toEl=$('to');
+    if(!toEl)return toast('宛先が選択されていません');
+    let toId=toEl.value;
+    let recipientObj=recipientList().find(x=>x.id===toId);
+    if(!recipientObj)return toast('宛先の友達を選んでね');
+    
+    const sndEl=$('sender');
+    const visEl=$('cardVisibility');
+    let {error}=await sb.from('cards').insert({
+      sender:myAuthId,
+      recipient:recipientObj.userId,
+      sender_name:(sndEl?sndEl.value.trim():'')||'匿名',
+      msg:msgEl.value.trim(),
+      design:design,
+      visibility:visEl&&visEl.value==='friends'?'friends':'private',
+      media:mediaDraft?mediaDraft:null
+    });
+    if(error){
+      console.error(error);
+      return toast('送信エラー：'+(error.message||'友達になっているか確認してね'));
+    }
 
-  $('msg').value=''; mediaDraft=''; $('cardMedia').value=''; $('mediaPreview').innerHTML='';
-  loadServerData();
-  showBirthday(toId);
-  tab('home');
-  toast('カードを送ったよ！');
-};
+    msgEl.value=''; mediaDraft=''; 
+    const cm=$('cardMedia');if(cm)cm.value=''; 
+    const mp=$('mediaPreview');if(mp)mp.innerHTML='';
+    await loadServerData();
+    showBirthday(toId);
+    tab('home');
+    toast('カードを送ったよ！');
+  };
+}
 
-$('make').onclick=()=>modal('グループ機能',`<p>グループ機能は今後追加予定です！</p>`);
-$('join').onclick=()=>modal('グループ機能',`<p>グループ機能は今後追加予定です！</p>`);
+const makeBtn=$('make');if(makeBtn)makeBtn.onclick=()=>modal('グループ機能',`<p>グループ機能は今後追加予定です！</p>`);
+const joinBtn=$('join');if(joinBtn)joinBtn.onclick=()=>modal('グループ機能',`<p>グループ機能は今後追加予定です！</p>`);
 
-$('cardMedia').onchange=e=>{let file=e.target.files[0];if(!file)return;if(!file.type.startsWith('image/'))return toast('画像またはGIFを選んでね');let reader=new FileReader();reader.onload=()=>{mediaDraft=reader.result;$('mediaPreview').innerHTML=`<img class="card-media" src="${mediaDraft}" alt="プレビュー">`;};reader.readAsDataURL(file)};
+const cardMediaInput=$('cardMedia');
+if(cardMediaInput){
+  cardMediaInput.onchange=e=>{
+    let file=e.target.files[0];
+    if(!file)return;
+    if(!file.type.startsWith('image/'))return toast('画像またはGIFを選んでね');
+    let reader=new FileReader();
+    reader.onload=()=>{
+      mediaDraft=reader.result;
+      const mp=$('mediaPreview');
+      if(mp)mp.innerHTML=`<img class="card-media" src="${mediaDraft}" alt="プレビュー">`;
+    };
+    reader.readAsDataURL(file);
+  };
+}
 
 async function renderFriendSearchResult(h){
   let {data:f}=await sb.from('profiles').select('*').eq('handle',h).maybeSingle();
-  if(!f)return $('friendSearchResult').innerHTML='<p class="muted">該当するアカウントが見つかりません。</p>';
+  const sr=$('friendSearchResult');
+  if(!sr)return;
+  if(!f)return sr.innerHTML='<p class="muted">該当するアカウントが見つかりません。</p>';
   let isFriend=friends.some(x=>x.handle===h);
   let isSelf=f.handle===profile.handle;
-  $('friendSearchResult').innerHTML=`<div class="friend-row"><div class="avatar">${safe(f.avatar||'🙂')}</div><div class="grow"><b>${safe(f.name)}</b><div class="handle">@${safe(f.handle)}</div></div><button class="btn" onclick="openProfile('${safe(f.handle)}')">プロフィール</button>${isSelf?'':isFriend?'<span class="muted">友達</span>':`<button class="btn primary" onclick="sendProfileFriendRequest('${safe(f.handle)}')">リクエスト送信</button>`}</div>`;
+  sr.innerHTML=`<div class="friend-row"><div class="avatar">${safe(f.avatar||'🙂')}</div><div class="grow"><b>${safe(f.name)}</b><div class="handle">@${safe(f.handle)}</div></div><button class="btn" onclick="openProfile('${safe(f.handle)}')">プロフィール</button>${isSelf?'':isFriend?'<span class="muted">友達</span>':`<button class="btn primary" onclick="sendProfileFriendRequest('${safe(f.handle)}')">リクエスト送信</button>`}</div>`;
 }
 
-$('searchFriend').onclick=()=>{
-  let h=normalizeHandle($('friendSearch').value);
-  if(!h)return toast('アカウント名を入力してね');
-  renderFriendSearchResult(h);
-};
+const searchFriendBtn=$('searchFriend');
+if(searchFriendBtn){
+  searchFriendBtn.onclick=()=>{
+    const fsInput=$('friendSearch');
+    let h=normalizeHandle(fsInput?fsInput.value:'');
+    if(!h)return toast('アカウント名を入力してね');
+    renderFriendSearchResult(h);
+  };
+}
 
-$('enableNotifications').onclick=async()=>{if(!('Notification'in window))return toast('通知に対応していません');let p=await Notification.requestPermission();$('notificationStatus').textContent=p==='granted'?'通知が許可されたよ！':'通知は拒否されています。'};
+const enableNotifBtn=$('enableNotifications');
+if(enableNotifBtn){
+  enableNotifBtn.onclick=async()=>{
+    if(!('Notification'in window))return toast('通知に対応していません');
+    let p=await Notification.requestPermission();
+    const ns=$('notificationStatus');
+    if(ns)ns.textContent=p==='granted'?'通知が許可されたよ！':'通知は拒否されています。';
+  };
+}
 
 document.addEventListener('click',e=>{
   const target=e.target.closest('button');
   if(!target)return;
   if(target.id==='confirmLogout'){sb.auth.signOut();location.reload();}
-  if(target.id==='cancelAction'){$('modal').classList.remove('show');}
+  if(target.id==='cancelAction'){const m=$('modal');if(m)m.classList.remove('show');}
 });
 
-$('avatarOptions').onclick=e=>{let b=e.target.closest('[data-avatar]');if(!b)return;profile.avatar=b.dataset.avatar;render();};
-$('avatarUpload').onchange=e=>{let file=e.target.files[0];if(!file)return;let reader=new FileReader();reader.onload=()=>{profile.avatar=reader.result;render();};reader.readAsDataURL(file);};
+const avatarOpts=$('avatarOptions');
+if(avatarOpts){
+  avatarOpts.onclick=e=>{
+    let b=e.target.closest('[data-avatar]');
+    if(!b)return;
+    profile.avatar=b.dataset.avatar;
+    render();
+  };
+}
 
-$('saveProfile').onclick=async()=>{
-  profile.name=$('name').value.trim();
-  profile.birthday=$('birthday').value;
-  profile.birthdayVisibility=$('birthdayVisibility').value;
-  profile.bio=$('bio').value.trim();
-  profile.wishlist=$('wishlist').value.trim();
-  
-  let {error}=await sb.from('profiles').update({
-    name:profile.name,
-    birthday:profile.birthday||null,
-    birthday_visibility:profile.birthdayVisibility,
-    bio:profile.bio,
-    wishlist:profile.wishlist,
-    avatar:profile.avatar
-  }).eq('id',myAuthId);
-  
-  if(error)return toast('保存に失敗しました');
-  toast('プロフィールを保存したよ！');
-  render();
-};
+const avatarUploadInput=$('avatarUpload');
+if(avatarUploadInput){
+  avatarUploadInput.onchange=e=>{
+    let file=e.target.files[0];
+    if(!file)return;
+    let reader=new FileReader();
+    reader.onload=()=>{profile.avatar=reader.result;render();};
+    reader.readAsDataURL(file);
+  };
+}
+
+const saveProfBtn=$('saveProfile');
+if(saveProfBtn){
+  saveProfBtn.onclick=async()=>{
+    const nameEl=$('name');
+    const bthEl=$('birthday');
+    const bthVis=$('birthdayVisibility');
+    const bioEl=$('bio');
+    const wlEl=$('wishlist');
+
+    profile.name=nameEl?nameEl.value.trim():profile.name;
+    profile.birthday=bthEl?bthEl.value:profile.birthday;
+    profile.birthdayVisibility=bthVis?bthVis.value:'friends';
+    profile.bio=bioEl?bioEl.value.trim():profile.bio;
+    profile.wishlist=wlEl?wlEl.value.trim():profile.wishlist;
+    
+    let {error}=await sb.from('profiles').update({
+      name:profile.name,
+      birthday:profile.birthday||null,
+      birthday_visibility:profile.birthdayVisibility,
+      bio:profile.bio,
+      wishlist:profile.wishlist,
+      avatar:profile.avatar
+    }).eq('id',myAuthId);
+    
+    if(error)return toast('保存に失敗しました');
+    toast('プロフィールを保存したよ！');
+    render();
+  };
+}
 
 const onboarding=$('onboarding');
 function showOnboardStep(step){
-  $('onboardAccount').classList.toggle('active',step==='account');
-  $('onboardGroups').classList.toggle('active',step==='groups');
+  const ac=$('onboardAccount');
+  const ag=$('onboardGroups');
+  if(ac)ac.classList.toggle('active',step==='account');
+  if(ag)ag.classList.toggle('active',step==='groups');
 }
-function finishOnboarding(){onboarding.classList.remove('show');}
+function finishOnboarding(){if(onboarding)onboarding.classList.remove('show');}
 
-function authMsg(t){$('authMsg').textContent=t||''}
+function authMsg(t){const el=$('authMsg');if(el)el.textContent=t||''}
 
-$('createAccount').onclick=async()=>{
-  const n=$('accountName').value.trim(), h=normalizeHandle($('accountHandle').value), pw=$('accountPassword').value;
-  if(!sb)return authMsg('サーバーに接続できません');
-  if(!n)return authMsg('ニックネームを入力してね');
-  if(!h)return authMsg('アカウント名を入力してね');
-  if(pw.length<6)return authMsg('パスワードは6文字以上にしてね');
-  authMsg('');
-  
-  let {data,error}=await sb.auth.signUp({email:emailFor(h),password:pw});
-  if(error){
-    if(/already/i.test(error.message)){
-      let loginRes=await sb.auth.signInWithPassword({email:emailFor(h),password:pw});
-      if(loginRes.error)return authMsg('そのアカウント名はすでに使われています');
-      myAuthId=loginRes.data.user.id;
-      await loadServerData();
-      finishOnboarding();
-      return;
+const createAccBtn=$('createAccount');
+if(createAccBtn){
+  createAccBtn.onclick=async()=>{
+    const accName=$('accountName'), accHdl=$('accountHandle'), accPw=$('accountPassword');
+    const n=accName?accName.value.trim():'';
+    const h=normalizeHandle(accHdl?accHdl.value:'');
+    const pw=accPw?accPw.value:'';
+
+    if(!sb)return authMsg('サーバーに接続できません');
+    if(!n)return authMsg('ニックネームを入力してね');
+    if(!h)return authMsg('アカウント名を入力してね');
+    if(pw.length<6)return authMsg('パスワードは6文字以上にしてね');
+    authMsg('');
+    
+    let {data,error}=await sb.auth.signUp({email:emailFor(h),password:pw});
+    if(error){
+      if(/already/i.test(error.message)){
+        let loginRes=await sb.auth.signInWithPassword({email:emailFor(h),password:pw});
+        if(loginRes.error)return authMsg('そのアカウント名はすでに使われています');
+        myAuthId=loginRes.data.user.id;
+        await loadServerData();
+        finishOnboarding();
+        return;
+      }
+      return authMsg('登録エラー：'+error.message);
     }
-    return authMsg('登録エラー：'+error.message);
-  }
-  if(!data.user)return authMsg('登録できませんでした');
-  myAuthId=data.user.id;
-  
-  let {error:e2}=await sb.from('profiles').insert({
-    id:myAuthId,
-    handle:h,
-    name:n,
-    avatar:'🙂',
-    birthday_visibility:'friends'
-  });
-  if(e2)return authMsg('プロフィールの作成に失敗しました：'+e2.message);
-  
-  await loadServerData();
-  finishOnboarding();
-};
+    if(!data.user)return authMsg('登録できませんでした');
+    myAuthId=data.user.id;
+    
+    let {error:e2}=await sb.from('profiles').insert({
+      id:myAuthId,
+      handle:h,
+      name:n,
+      avatar:'🙂',
+      birthday_visibility:'friends'
+    });
+    if(e2)return authMsg('プロフィールの作成に失敗しました：'+e2.message);
+    
+    await loadServerData();
+    finishOnboarding();
+  };
+}
 
-$('loginAccount').onclick=async()=>{
-  const h=normalizeHandle($('accountHandle').value), pw=$('accountPassword').value;
-  if(!sb)return authMsg('接続エラー');
-  let {data,error}=await sb.auth.signInWithPassword({email:emailFor(h),password:pw});
-  if(error)return authMsg('アカウント名かパスワードが違います');
-  myAuthId=data.user.id;
-  await loadServerData();
-  finishOnboarding();
-  authMsg('');
-};
+const loginAccBtn=$('loginAccount');
+if(loginAccBtn){
+  loginAccBtn.onclick=async()=>{
+    const accHdl=$('accountHandle'), accPw=$('accountPassword');
+    const h=normalizeHandle(accHdl?accHdl.value:'');
+    const pw=accPw?accPw.value:'';
+
+    if(!sb)return authMsg('接続エラー');
+    let {data,error}=await sb.auth.signInWithPassword({email:emailFor(h),password:pw});
+    if(error)return authMsg('アカウント名かパスワードが違います');
+    myAuthId=data.user.id;
+    await loadServerData();
+    finishOnboarding();
+    authMsg('');
+  };
+}
 
 (async()=>{
   if(!sb)return;
   let {data:{session}}=await sb.auth.getSession();
-  if(!session){onboarding.classList.add('show');return;}
+  if(!session){if(onboarding)onboarding.classList.add('show');return;}
   myAuthId=session.user.id;
   await loadServerData();
   finishOnboarding();
 })();
 
-$('onboardLater').onclick=()=>{finishOnboarding();tab('home')};
-$('modal').onclick=e=>{if(e.target===$('modal'))$('modal').classList.remove('show');};
-function modal(title,body){$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('modal').classList.add('show')}
-$('close').onclick=()=>$('modal').classList.remove('show');
+const onboardLaterBtn=$('onboardLater');
+if(onboardLaterBtn)onboardLaterBtn.onclick=()=>{finishOnboarding();tab('home')};
+
+const modalEl=$('modal');
+if(modalEl){
+  modalEl.onclick=e=>{if(e.target===modalEl)modalEl.classList.remove('show');};
+}
+function modal(title,body){
+  const mt=$('modalTitle'), mb=$('modalBody'), m=$('modal');
+  if(mt)mt.textContent=title;
+  if(mb)mb.innerHTML=body;
+  if(m)m.classList.add('show');
+}
+const closeBtn=$('close');
+if(closeBtn)closeBtn.onclick=()=>{const m=$('modal');if(m)m.classList.remove('show');};
 </script></body></html>
