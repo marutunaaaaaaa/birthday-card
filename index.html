@@ -142,7 +142,7 @@ const avatarChoices=['🙂','😎','🐱','🐶','🐰','🦊','🐻','🐼','�
 const $=id=>document.getElementById(id);const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function persist(){try{scheduleProfileSync()}catch(e){}localStorage.setItem('op_cards',JSON.stringify(cards));localStorage.setItem('op_groups',JSON.stringify(groups));localStorage.setItem('op_profile',JSON.stringify(profile));localStorage.setItem('op_friends',JSON.stringify(friends));localStorage.setItem('op_friend_requests',JSON.stringify(friendRequests));localStorage.setItem('op_saved_cards',JSON.stringify(savedCardIds));localStorage.setItem('op_reports',JSON.stringify(reports));localStorage.setItem('op_group_join_requests',JSON.stringify(groupJoinRequests));localStorage.setItem('op_banned_users',JSON.stringify(bannedUsers))}
 function toast(t){$('toast').textContent=t;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2100)}
-function tab(t){document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===t));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));if(t==='friends')renderFriends();if(t==='calendar')renderCalendar();if(t==='album')renderSavedCards();if(t==='manage'){renderAdmin();renderReports()}}
+function tab(t){if(t==='friends')try{loadFriends()}catch(e){}document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===t));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));if(t==='friends')renderFriends();if(t==='calendar')renderCalendar();if(t==='album')renderSavedCards();if(t==='manage'){renderAdmin();renderReports()}}
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
 $('logoutButton').onclick=()=>modal('ログアウトしますか？','<p>このデモ端末からログアウトします。保存済みのカードや友達データは削除されません。</p><div class="btnrow"><button class="btn primary" id="confirmLogout">ログアウト</button><button class="btn" id="cancelAction">キャンセル</button></div>');
 $('demoLoginAgain').onclick=()=>{location.reload()};
@@ -210,6 +210,7 @@ function openProfile(handle){
  $('profilePage').classList.add('show');
  window.__profileHandle=handle;
  renderProfileFriendList(handle,isFriend);
+ if(!isSelf&&isFriend)ensureFriendsOf(handle);
  $('backFromProfileInner').onclick=()=>$('profilePage').classList.remove('show');
 }
 window.editOwnProfile=()=>{document.getElementById('profilePage').classList.remove('show');tab('profile')};
@@ -453,15 +454,23 @@ $('createAccount').onclick=async()=>{
   if(pw.length<6)return authMsg('パスワードは6文字以上にしてね');
   authMsg('');const btn=$('createAccount');btn.disabled=true;btn.textContent='登録中…';
   try{
-    const {data,error}=await withTimeout(sb.auth.signUp({email:emailFor(h),password:pw}));
+    let {data,error}=await withTimeout(sb.auth.signUp({email:emailFor(h),password:pw}));
     if(error)console.error(error);
-    if(error)return authMsg(/already|registered/i.test(error.message)?'そのアカウント名はすでに使われているよ':'登録できなかったよ：'+error.message);
+    if(error&&/already|registered/i.test(error.message)){
+      // 前回の登録が途中で止まっていた場合に備えて、同じパスワードでログインを試す
+      const r=await withTimeout(sb.auth.signInWithPassword({email:emailFor(h),password:pw}));
+      if(r.error)return authMsg('そのアカウント名はすでに使われているか、前回の登録が途中で止まっているよ（'+r.error.message+'）');
+      const {data:ex}=await sb.from('profiles').select('id').eq('id',r.data.user.id).maybeSingle();
+      if(ex){await sb.auth.signOut();return authMsg('そのアカウント名はすでに使われているよ')}
+      data={user:r.data.user,session:r.data.session};error=null;
+    }
+    if(error)return authMsg('登録できなかったよ：'+error.message);
     if(!data.session)return authMsg('メール確認がオンのままみたい。Supabaseの設定でオフにしてね');
     profile={...profile,name:n,handle:h};
     const {error:e2}=await sb.from('profiles').insert(rowFromProfile(data.user.id));
     if(e2){await sb.auth.signOut();return authMsg(e2.code==='23505'?'そのアカウント名はすでに使われているよ':'プロフィールを作れなかったよ：'+e2.message)}
     lastSynced=JSON.stringify(rowFromProfile(data.user.id));
-    persist();render();showOnboardStep('groups');
+    persist();render();showOnboardStep('groups');sbUid=null;loadFriends();
   }catch(e){console.error(e);authMsg('うまくいかなかったよ：'+(e.message||e))}finally{btn.disabled=false;btn.textContent='アカウントを作成して進む'}
 };
 $('loginAccount').onclick=async()=>{
@@ -473,8 +482,61 @@ $('loginAccount').onclick=async()=>{
   const {data:row}=await sb.from('profiles').select('*').eq('id',data.user.id).maybeSingle();
   if(!row)return authMsg('プロフィールを読み込めなかったよ');
   profile=profileFromRow(row);lastSynced=JSON.stringify(rowFromProfile(data.user.id));
-  persist();render();finishOnboarding();authMsg('');
+  persist();render();finishOnboarding();sbUid=null;loadFriends();authMsg('');
 };
+// ===== 友達機能（Supabase版）：上のデモ用の同名の関数・処理は、ここで置き換える =====
+let sbUid=null,lastFriendSig='';const knownProfiles={},friendsOfCache={};
+async function currentUid(){if(sbUid)return sbUid;if(!sb)return null;const {data:{session}}=await sb.auth.getSession();sbUid=session?session.user.id:null;return sbUid}
+function profileForHandle(h){return friendByHandle(h)||knownProfiles[h]||null}
+function profileFriendsFor(handle,isSelf){
+  if(isSelf)return friends.filter(f=>f.handle!==profile.handle);
+  return (friendsOfCache[handle]||[]).filter(h=>h!==handle&&h!==profile.handle).map(h=>profileForHandle(h)).filter(Boolean);
+}
+async function loadFriends(){
+  if(!sb)return;const uid=await currentUid();if(!uid)return;
+  const {data:rows,error}=await sb.rpc('my_friendships');
+  if(error){console.error(error);return}
+  rows.forEach(r=>{knownProfiles[r.handle]={id:r.other_id,handle:r.handle,name:r.name,avatar:r.avatar}});
+  const acc=rows.filter(r=>r.status==='accepted'),full={};
+  if(acc.length){const {data:ps}=await sb.from('profiles').select('*').in('id',acc.map(r=>r.other_id));(ps||[]).forEach(x=>full[x.id]=x)}
+  const brief=r=>({handle:r.handle,name:r.name,avatar:r.avatar,_fid:r.id,_uid:r.other_id});
+  const nf=acc.map(r=>({...(full[r.other_id]?profileFromRow(full[r.other_id]):{}),...brief(r)}));
+  const nr={incoming:rows.filter(r=>r.status==='pending'&&r.direction==='in').map(brief),outgoing:rows.filter(r=>r.status==='pending'&&r.direction==='out').map(brief)};
+  const sig=JSON.stringify([nf,nr]);if(sig===lastFriendSig)return;
+  lastFriendSig=sig;friends=nf;friendRequests=nr;persist();render();refreshFriendViews();
+}
+async function ensureFriendsOf(handle){
+  const k=knownProfiles[handle]||friends.find(f=>f.handle===handle);const id=k&&(k.id||k._uid);if(!sb||!id)return;
+  const {data,error}=await sb.rpc('friends_of',{target:id});if(error){console.error(error);return}
+  data.forEach(r=>{knownProfiles[r.handle]={id:r.id,handle:r.handle,name:r.name,avatar:r.avatar}});
+  friendsOfCache[handle]=data.map(r=>r.handle);
+  if(window.__profileHandle===handle&&$('profileFriendsList'))renderProfileFriendList(handle,true);
+}
+async function renderFriendSearchResult(h){
+  if(!sb)return;const {data,error}=await sb.rpc('find_profile',{h});const f=data&&data[0];
+  if(error||!f)return $('friendSearchResult').innerHTML='<p class="muted">該当するアカウントが見つかりません。</p>';
+  knownProfiles[f.handle]={id:f.id,handle:f.handle,name:f.name,avatar:f.avatar};
+  const isFriend=friends.some(x=>x.handle===h),pending=friendRequests.outgoing.some(x=>x.handle===h),incoming=friendRequests.incoming.some(x=>x.handle===h);
+  $('friendSearchResult').innerHTML=`<div class="friend-row"><div class="avatar">${safe(f.avatar||'🙂')}</div><div class="grow"><b>${safe(f.name)}</b><div class="handle">@${safe(f.handle)}</div></div>${isFriend?'<span class="muted">友達</span>':pending?'<span class="muted">申請中</span>':incoming?'<span class="muted">リクエストが届いています</span>':`<button class="btn primary" id="sendFriendRequest" data-handle="${safe(f.handle)}">リクエスト送信</button>`}</div>`;
+}
+window.sendProfileFriendRequest=async handle=>{
+  const uid=await currentUid();if(!uid)return toast('ログインしてね');
+  if(!handle||handle===profile.handle)return toast('自分自身には送れないよ');
+  if(friends.some(x=>x.handle===handle))return toast('すでに友達だよ');
+  if(friendRequests.outgoing.some(x=>x.handle===handle))return toast('すでに申請中だよ');
+  if(friendRequests.incoming.some(x=>x.handle===handle))return toast('相手からリクエストが届いているよ。承認してね');
+  const o=profileForHandle(handle),oid=o&&(o.id||o._uid);if(!oid)return toast('相手が見つからないよ');
+  const {error}=await sb.from('friendships').insert({requester:uid,addressee:oid});
+  if(error){if(error.code==='23505'){await loadFriends();return toast('すでに申請中か、友達だよ')}console.error(error);return toast('申請できなかったよ')}
+  await loadFriends();refreshFriendViews();toast('友達リクエストを送ったよ');
+};
+async function friendshipDelete(id,msg){const {error}=await sb.from('friendships').delete().eq('id',id);if(error){console.error(error);return toast('うまくいかなかったよ')}await loadFriends();toast(msg)}
+window.acceptFriendRequest=async i=>{const r=friendRequests.incoming[i];if(!r)return;const {error}=await sb.from('friendships').update({status:'accepted'}).eq('id',r._fid);if(error){console.error(error);return toast('承認できなかったよ')}await loadFriends();toast(r.name+'と友達になったよ！')};
+window.declineFriendRequest=i=>{const r=friendRequests.incoming[i];if(r)friendshipDelete(r._fid,'リクエストを拒否したよ')};
+window.cancelFriendRequest=i=>{const r=friendRequests.outgoing[i];if(r)friendshipDelete(r._fid,'リクエストを取り消したよ')};
+window.removeFriend=h=>{const f=friends.find(x=>x.handle===h);if(f)friendshipDelete(f._fid,'友達から削除したよ')};
+{const d=$('demoIncomingRequest');if(d&&d.closest('.card'))d.closest('.card').style.display='none'}
+setInterval(()=>{if(!document.hidden&&sbUid)loadFriends()},20000);
 // 前回のログインが残っていれば、そのまま入る
 (async()=>{
   if(!sb)return;
@@ -482,7 +544,7 @@ $('loginAccount').onclick=async()=>{
   const {data:row}=await sb.from('profiles').select('*').eq('id',session.user.id).maybeSingle();
   if(!row)return;
   profile=profileFromRow(row);lastSynced=JSON.stringify(rowFromProfile(session.user.id));
-  persist();render();finishOnboarding();
+  persist();render();finishOnboarding();sbUid=null;loadFriends();
 })();
 $('onboardMake').onclick=()=>{finishOnboarding();tab('groups');$('make').click()};
 $('onboardJoin').onclick=()=>{finishOnboarding();tab('groups');$('join').click()};
