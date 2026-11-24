@@ -153,27 +153,28 @@ const sb=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)
 const emailFor=h=>h+'@omedeto-post.example.com';
 
 async function loadServerData(){
+try{await loadServerDataInner()}catch(e){console.error('loadServerData',e);toast('データの読み込みでエラー：'+(e&&e.message?e.message:e));authMsg('データの読み込みでエラー：'+(e&&e.message?e.message:e))}
+}
+async function loadServerDataInner(){
   if(!sb||!myAuthId)return;
   let {data:p}=await sb.from('profiles').select('*').eq('id',myAuthId).maybeSingle();
   if(p){
     profile={name:p.name||'',handle:p.handle||'',birthday:p.birthday||'',bio:p.bio||'',avatar:p.avatar||'🙂',birthdayVisibility:p.birthday_visibility||'friends',wishlist:p.wishlist||''};
   }
-  let {data:fs}=await sb.from('friendships').select('*').or(`requester.eq.${myAuthId},addressee.eq.${myAuthId}`);
-  if(fs){
-    friends=[]; friendRequests.incoming=[]; friendRequests.outgoing=[];
-    for(let f of fs){
-      let friendId=f.requester===myAuthId?f.addressee:f.requester;
-      let {data:fp}=await sb.from('profiles').select('*').eq('id',friendId).maybeSingle();
-      if(!fp)continue;
-      let item={id:fp.id,handle:fp.handle,name:fp.name,avatar:fp.avatar,birthday:fp.birthday,birthdayVisibility:fp.birthday_visibility,bio:fp.bio,wishlist:fp.wishlist};
-      if(f.status==='accepted'){
-        friends.push(item);
-      }else if(f.status==='pending'){
-        if(f.addressee===myAuthId) friendRequests.incoming.push(item);
-        else friendRequests.outgoing.push(item);
-      }
-    }
-  }
+let {data:fs}=await sb.rpc('my_friendships');
+if(fs){
+friends=[]; friendRequests.incoming=[]; friendRequests.outgoing=[];
+const accIds=fs.filter(f=>f.status==='accepted').map(f=>f.other_id);
+let full={};
+if(accIds.length){let {data:ps}=await sb.from('profiles').select('*').in('id',accIds);(ps||[]).forEach(x=>full[x.id]=x);}
+for(let f of fs){
+let fp=full[f.other_id]||{};
+let item={id:f.other_id,handle:f.handle,name:f.name,avatar:f.avatar,birthday:fp.birthday,birthdayVisibility:fp.birthday_visibility,bio:fp.bio,wishlist:fp.wishlist};
+if(f.status==='accepted'){friends.push(item);}
+else if(f.direction==='in'){friendRequests.incoming.push(item);}
+else{friendRequests.outgoing.push(item);}
+}
+}
   let {data:gs}=await sb.from('groups').select('*');
   if(gs){
     groups=gs.map(g=>({id:g.id,name:g.name,icon:g.icon||'🏫',owner:g.owner,password:g.password}));
@@ -384,7 +385,7 @@ window.acceptFriendRequest=async requesterUuid=>{
 
 window.sendProfileFriendRequest=async handle=>{
   if(!sb)return;
-  let {data:target}=await sb.from('profiles').select('id').eq('handle',handle).maybeSingle();
+  let {data:tt}=await sb.rpc('find_profile',{h:handle});let target=tt&&tt[0];
   if(!target)return toast('ユーザーが見つかりません');
   if(target.id===myAuthId)return toast('自分自身には送れないよ');
   let {error}=await sb.from('friendships').insert({requester:myAuthId,addressee:target.id,status:'pending'});
@@ -414,7 +415,7 @@ function renderAdmin(){
 
 window.leaveGroup=async groupId=>{
   if(!confirm('本当にこのグループから抜けますか？')) return;
-  groups = groups.filter(g=>g.id !== groupId);
+  if(sb)await sb.from('group_members').delete().eq('group_id',groupId).eq('user_id',myAuthId);groups = groups.filter(g=>g.id !== groupId);
   render();
   toast('グループから抜けました');
 };
@@ -582,7 +583,7 @@ if(cardMediaInput){
 async function renderFriendSearchResult(h){
   if(!sb)return;
   // 完全一致だけでなく、大文字小文字を無視した検索や部分一致にも対応
-  let {data:f, error}=await sb.from('profiles').select('*').ilike('handle', h).maybeSingle();
+  let {data:fr, error}=await sb.rpc('find_profile',{h});let f=fr&&fr[0];
   const sr=$('friendSearchResult');
   if(!sr)return;
   if(error || !f)return sr.innerHTML='<p class="muted">該当するアカウントが見つかりません。</p>';
@@ -637,7 +638,7 @@ document.addEventListener('click',async e=>{
     let name=$('newGroupName').value.trim();
     let password=$('newGroupPassword').value;
     if(!name||!password)return toast('グループ名とパスワードを入力してね');
-    let {error}=await sb.from('groups').insert({name,password,owner:myAuthId,icon:'🏫'});
+    let {error}=await sb.rpc('create_group',{p_name:name,p_password:password});
     if(error)return toast('グループの作成に失敗しました：'+error.message);
     $('modal').classList.remove('show');
     await loadServerData();
@@ -647,7 +648,7 @@ document.addEventListener('click',async e=>{
     let name=$('joinGroupName').value.trim();
     let password=$('joinGroupPassword').value;
     if(!name||!password)return toast('グループ名とパスワードを入力してね');
-    let {data:found, error}=await sb.from('groups').select('*').eq('name',name).eq('password',password).maybeSingle();
+    let {data:found, error}=await sb.rpc('join_group',{p_name:name,p_password:password});
     if(error||!found)return toast('グループ名かパスワードが間違っています');
     $('modal').classList.remove('show');
     toast('グループに参加しました！');
