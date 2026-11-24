@@ -166,7 +166,7 @@ if(fs){
 friends=[]; friendRequests.incoming=[]; friendRequests.outgoing=[];
 const accIds=fs.filter(f=>f.status==='accepted').map(f=>f.other_id);
 let full={};
-if(accIds.length){let {data:ps}=await sb.from('profiles').select('*').in('id',accIds);(ps||[]).forEach(x=>full[x.id]=x);}
+if(accIds.length){let {data:ps}=await sb.rpc('friend_profiles');(ps||[]).forEach(x=>full[x.id]=x);}
 for(let f of fs){
 let fp=full[f.other_id]||{};
 let item={id:f.other_id,handle:f.handle,name:f.name,avatar:f.avatar,birthday:fp.birthday,birthdayVisibility:fp.birthday_visibility,bio:fp.bio,wishlist:fp.wishlist};
@@ -424,6 +424,59 @@ function renderAdmin(){
  }
 }
 
+function grpIcon(g){const a=g&&g.icon;return a&&String(a).startsWith('data:image/')?`<img src="${a}" alt="" style="width:100%;height:100%;object-fit:cover">`:safe(a||'🏫')}
+function memAvatar(a){return a&&String(a).startsWith('data:image/')?`<img src="${a}" alt="" style="width:100%;height:100%;object-fit:cover">`:safe(a||'🙂')}
+window.showGroupMembers=async gid=>{
+if(!sb)return;
+window.__lastGroupModal=gid;
+const {data,error}=await sb.rpc('group_members_of',{gid});
+if(error||!data){console.error(error);return toast('メンバーを読み込めなかったよ');}
+const g=groups.find(x=>x.id===gid),iAmOwner=!!g&&g.owner===myAuthId;
+const rows=data.map(m=>{
+const isMe=m.id===myAuthId,isFriend=friends.some(f=>f.id===m.id),pending=friendRequests.outgoing.some(f=>f.id===m.id)||friendRequests.incoming.some(f=>f.id===m.id);
+let act='';
+if(isMe)act='<span class="muted">あなた</span>';
+else{
+if(isFriend)act+='<span class="muted">友達</span>';
+else if(pending)act+='<span class="muted">申請中</span>';
+else act+=`<button class="btn small-btn" onclick="groupMemberRequest('${safe(m.handle)}')">友達申請</button>`;
+if(iAmOwner)act+=`<button class="btn small-btn" style="background:#ffe8ef;color:#d9587b;" onclick="kickGroupMember('${gid}','${m.id}')">外す</button>`;
+}
+return `<div class="friend-row"><div class="avatar" style="overflow:hidden">${memAvatar(m.avatar)}</div><div class="grow"><b>${safe(m.name)}</b>${m.is_owner?' 👑':''}<div class="handle">@${safe(m.handle)}</div></div>${act}</div>`;
+}).join('');
+modal((g?g.name:'グループ')+' のメンバー（'+data.length+'人）',rows||'<div class="muted">メンバーがいません。</div>');
+};
+window.groupMemberRequest=async h=>{await sendProfileFriendRequest(h);if(window.__lastGroupModal)showGroupMembers(window.__lastGroupModal);};
+window.kickGroupMember=async(gid,uid)=>{
+if(!confirm('このメンバーをグループから外しますか？'))return;
+const {error}=await sb.rpc('remove_group_member',{gid,uid});
+if(error){console.error(error);return toast('外せなかったよ');}
+toast('メンバーを外したよ');showGroupMembers(gid);
+};
+window.changeGroupPhoto=gid=>{
+let inp=document.getElementById('groupPhotoInput');
+if(!inp){
+inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.id='groupPhotoInput';inp.hidden=true;document.body.appendChild(inp);
+inp.onchange=e=>{
+const file=e.target.files[0];e.target.value='';const id=inp.dataset.gid;
+if(!file||!id)return;
+if(!file.type.startsWith('image/'))return toast('画像ファイルを選んでね');
+if(file.size>5*1024*1024)return toast('画像は5MB以下にしてね');
+const rd=new FileReader();
+rd.onload=()=>{const img=new Image();img.onload=async()=>{
+const c=document.createElement('canvas');c.width=c.height=160;
+const side=Math.min(img.width,img.height);
+c.getContext('2d').drawImage(img,(img.width-side)/2,(img.height-side)/2,side,side,0,0,160,160);
+const {error}=await sb.from('groups').update({icon:c.toDataURL('image/jpeg',0.82)}).eq('id',id);
+if(error){console.error(error);return toast('写真を変更できなかったよ');}
+toast('グループの写真を変更したよ');await loadServerData();
+};img.src=rd.result;};
+rd.readAsDataURL(file);
+};
+}
+inp.dataset.gid=gid;inp.click();
+};
+
 window.leaveGroup=async groupId=>{
   if(!confirm('本当にこのグループから抜けますか？')) return;
   if(sb)await sb.from('group_members').delete().eq('group_id',groupId).eq('user_id',myAuthId);groups = groups.filter(g=>g.id !== groupId);
@@ -481,7 +534,7 @@ function render(){
  const ao=$('avatarOptions');if(ao)ao.innerHTML=avatarChoices.map(a=>`<button type="button" class="avatar-choice ${profile.avatar===a?'sel':''}" data-avatar="${a}">${a}</button>`).join('');
  const pp=$('people');if(pp)pp.innerHTML=recipientList().map(p=>{let days=daysUntilBirthday(p.date);return `<div class="person"><div class="avatar">${p.emoji}</div><div class="grow"><b>${p.name}</b><div class="muted">${p.date} 生まれ · ${days===0?'今日が誕生日！':`あと${days}日`}</div></div><button class="btn" onclick="showBirthday('${p.id}')">カードを見る</button><button class="btn primary" onclick="pick('${p.id}')">書く</button></div>`}).join('');
  const toEl=$('to');if(toEl)toEl.innerHTML=recipientList().map(p=>`<option value="${p.id}">${safe(p.name)}</option>`).join('');
- const gl=$('groupList');if(gl)gl.innerHTML=groups.length?groups.map(g=>`<div class="group"><div class="avatar">🏫</div><div class="grow"><b>${safe(g.name)}</b><div class="muted">参加中</div></div><button class="btn small-btn" style="background:#ffe8ef;color:#d9587b;" onclick="leaveGroup('${g.id}')">🚪 抜ける</button></div>`).join(''):'<div class="muted">参加しているグループはありません。</div>';
+ const gl=$('groupList');if(gl)gl.innerHTML=groups.length?groups.map(g=>`<div class="group"><div class="avatar" style="overflow:hidden">${grpIcon(g)}</div><div class="grow"><b>${safe(g.name)}</b><div class="muted">参加中</div></div><button class="btn small-btn" style="background:#ffe8ef;color:#d9587b;" onclick="leaveGroup('${g.id}')">🚪 抜ける</button><button class="btn small-btn" onclick="showGroupMembers('${g.id}')">👥 メンバー</button>${g.owner===myAuthId?`<button class="btn small-btn" onclick="changeGroupPhoto('${g.id}')">📷 写真</button>`:''}</div>`).join(''):'<div class="muted">参加しているグループはありません。</div>';
  const nameEl=$('name');if(nameEl)nameEl.value=profile.name;
  const bthEl=$('birthday');if(bthEl)bthEl.value=profile.birthday;
  const bthVis=$('birthdayVisibility');if(bthVis)bthVis.value=profile.birthdayVisibility||'friends';
@@ -660,7 +713,8 @@ document.addEventListener('click',async e=>{
     let password=$('joinGroupPassword').value;
     if(!name||!password)return toast('グループ名とパスワードを入力してね');
     let {data:found, error}=await sb.rpc('join_group',{p_name:name,p_password:password});
-    if(error||!found)return toast('グループ名かパスワードが間違っています');
+    if(error&&/too many/i.test(error.message||''))return toast('まちがいが続いたので、10分ほど待ってからもう一度ためしてね');
+if(error||!found)return toast('グループ名かパスワードが間違っています');
     $('modal').classList.remove('show');
     toast('グループに参加しました！');
     await loadServerData();
