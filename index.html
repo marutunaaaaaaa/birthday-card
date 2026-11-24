@@ -371,9 +371,9 @@ function birthdayLabel(iso){const p=dateParts(iso);return p?`${p.month}月${p.da
 function normalizeHandle(h){return String(h||'').trim().replace(/^@/,'').toLowerCase()}
 
 function loadFriends(){
- const fl=$('friendList');if(fl)fl.innerHTML=friends.length?friends.map(f=>`<div class="friend-row"><div class="avatar">${safe(f.avatar||'🙂')}</div><div class="grow"><b>${safe(f.name)}</b><div class="handle">@${safe(f.handle)}</div></div><button class="btn small-btn" onclick="openProfile('${safe(f.handle)}')">プロフィール</button></div>`).join(''):'<div class="muted">まだ友達はいません。検索してリクエストを送ってみよう。</div>';
- const ir=$('incomingRequests');if(ir)ir.innerHTML=friendRequests.incoming.length?friendRequests.incoming.map(r=>`<div class="request-block"><div class="friend-row"><div class="avatar">${safe(r.avatar||'🙂')}</div><div class="grow"><b>${safe(r.name)}</b><div class="handle">@${safe(r.handle)}</div></div><button class="btn primary small-btn" onclick="acceptFriendRequest('${r.id}')">承認</button></div></div>`).join(''):'<div class="muted">受信したリクエストはありません。</div>';
- const or=$('outgoingRequests');if(or)or.innerHTML=friendRequests.outgoing.length?friendRequests.outgoing.map(r=>`<div class="friend-row"><div class="avatar">${safe(r.avatar||'🙂')}</div><div class="grow"><b>${safe(r.name)}</b><div class="handle">@${safe(r.handle)} · 承認待ち</div></div></div>`).join(''):'<div class="muted">送信中のリクエストはありません。</div>';
+ const fl=$('friendList');if(fl)fl.innerHTML=friends.length?friends.map(f=>`<div class="friend-row"><div class="avatar">${safe(f.avatar||'🙂')}</div><div class="grow"><b>${safe(f.name)}</b><div class="handle">@${safe(f.handle)}</div></div><button class="btn small-btn" onclick="openProfile('${safe(f.handle)}')">プロフィール</button><button class=\"btn small-btn\" style=\"background:#ffe8ef;color:#d9587b;\" onclick=\"removeFriend('${f.id}')\">削除</button></div>`).join(''):'<div class="muted">まだ友達はいません。検索してリクエストを送ってみよう。</div>';
+ const ir=$('incomingRequests');if(ir)ir.innerHTML=friendRequests.incoming.length?friendRequests.incoming.map(r=>`<div class="request-block"><div class="friend-row"><div class="avatar">${safe(r.avatar||'🙂')}</div><div class="grow"><b>${safe(r.name)}</b><div class="handle">@${safe(r.handle)}</div></div><button class="btn primary small-btn" onclick="acceptFriendRequest('${r.id}')">承認</button><button class=\"btn small-btn\" onclick=\"declineFriendRequest('${r.id}')\">拒否</button></div></div>`).join(''):'<div class="muted">受信したリクエストはありません。</div>';
+ const or=$('outgoingRequests');if(or)or.innerHTML=friendRequests.outgoing.length?friendRequests.outgoing.map(r=>`<div class="friend-row"><div class="avatar">${safe(r.avatar||'🙂')}</div><div class="grow"><b>${safe(r.name)}</b><div class="handle">@${safe(r.handle)} · 承認待ち</div></div><button class=\"btn small-btn\" onclick=\"cancelFriendRequest('${r.id}')\">取り消し</button></div>`).join(''):'<div class="muted">送信中のリクエストはありません。</div>';
 }
 
 window.acceptFriendRequest=async requesterUuid=>{
@@ -382,6 +382,17 @@ window.acceptFriendRequest=async requesterUuid=>{
   toast('友達リクエストを承認したよ！');
   loadServerData();
 };
+
+async function deleteFriendship(otherId,okMsg){
+if(!sb||!myAuthId)return;
+let {error}=await sb.from('friendships').delete().or(`and(requester.eq.${myAuthId},addressee.eq.${otherId}),and(requester.eq.${otherId},addressee.eq.${myAuthId})`);
+if(error){console.error(error);return toast('うまくいかなかったよ：'+error.message);}
+toast(okMsg);
+await loadServerData();
+}
+window.removeFriend=otherId=>{if(confirm('この友達を削除しますか？'))deleteFriendship(otherId,'友達から削除したよ');};
+window.declineFriendRequest=otherId=>deleteFriendship(otherId,'リクエストを拒否したよ');
+window.cancelFriendRequest=otherId=>deleteFriendship(otherId,'リクエストを取り消したよ');
 
 window.sendProfileFriendRequest=async handle=>{
   if(!sb)return;
