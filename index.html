@@ -64,12 +64,12 @@
       <div class="field"><label>ニックネーム（みんなに表示する名前）</label><input id="accountName" maxlength="20" placeholder="ニックネームを入力"></div>
       <div class="field"><label>アカウント名（英数字・重複不可）</label><input id="accountHandle" maxlength="20" placeholder="英小文字・数字・_（3〜20文字）" autocomplete="username"><div class="muted">半角英小文字・数字・_ が使えるよ。友達検索に使う名前です。</div></div>
       <div class="field"><label>パスワード</label><input id="accountPassword" type="password" minlength="6" placeholder="6文字以上"></div>
-      <details style="margin:10px 0;font-size:13px"><summary style="cursor:pointer;color:#7a5cc7">利用規約・プライバシーポリシー（案）を読む</summary><div style="margin-top:8px;line-height:1.7;max-height:220px;overflow:auto;background:#faf7f9;padding:10px;border-radius:10px">※これは草案です。公開前に、運営が内容を確認・修正してください。<br>1. 集める情報：ニックネーム・アカウント名・誕生日(任意)・ひとこと・ほしい物・アイコン画像・送受信したカードの内容と画像。<br>2. 使う目的：友達へのカードの送受信、誕生日の表示、不正利用への対応のみ。<br>3. 見える範囲：誕生日などは、設定した公開範囲の人だけに見えます。<br>4. 保存先：データは、運営が契約するクラウド(Supabase)に保存されます。<br>5. 禁止事項：悪口・いやがらせ・個人情報の書き込み・なりすまし・他の人が不快になる内容。<br>6. 通報とBAN：通報されたカードは運営が確認し、削除や利用停止をすることがあります。<br>7. 退会：プロフィールの「アカウントを削除する」から、いつでも自分のデータを全部消せます。<br>8. 13歳未満・未成年の方は、保護者の同意を得て使ってください。<br>9. 問い合わせ先：【運営の連絡先をここに書く】</div></details>
+      <details style="margin:10px 0;font-size:13px"><summary style="cursor:pointer;color:#7a5cc7">利用規約・プライバシーポリシー（案）を読む</summary><div style="margin-top:8px;line-height:1.7;max-height:220px;overflow:auto;background:#faf7f9;padding:10px;border-radius:10px">※これは草案です。公開前に、運営が内容を確認・修正してください。<br>1. 集める情報：ニックネーム・アカウント名・誕生日(任意)・ひとこと・ほしい物・アイコン画像・送受信したカードの内容と画像。<br>2. 使う目的：友達へのカードの送受信、誕生日の表示、不正利用への対応のみ。<br>3. 見える範囲：誕生日などは、設定した公開範囲の人だけに見えます。<br>4. 保存先：データは、運営が契約するクラウド(Supabase)に保存されます。<br>5. 禁止事項：悪口・いやがらせ・個人情報の書き込み・なりすまし・他の人が不快になる内容。<br>6. 通報とBAN：通報されたカードは運営が確認し、削除や利用停止をすることがあります。<br>7. 退会：プロフィールの「アカウントを削除する」から、いつでも自分のデータを全部消せます。<br>8. 13歳未満・未成年の方は、保護者の同意を得て使ってください。<br>9. 問い合わせ先：アプリ内のプロフィール画面にある「運営へのフィードバック」から連絡してください。</div></details>
       <label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;margin:6px 0 10px"><input type="checkbox" id="agreeTerms" style="margin-top:3px"><span>利用規約・プライバシーポリシーに同意します</span></label>
       <button class="btn primary" id="createAccount" style="width:100%;padding:13px">アカウントを作成して進む</button>
       <button class="btn" id="loginAccount" style="width:100%;margin-top:8px">すでにアカウントがある人はログイン</button>
       <div id="authMsg" style="color:#c84d75;font-size:13px;font-weight:700;margin:12px 2px 0;min-height:18px;text-align:center;overflow-wrap:anywhere"></div>
-      <div class="onboard-note">ログインにはアカウント名とパスワードを使います。</div>
+      <div class="onboard-note">パスワードは再設定できません。どこかにメモして、なくさないでね（スクショでもOK）。ログインにはアカウント名とパスワードを使います。</div>
     </section>
     <section class="onboard-step" id="onboardGroups">
       <h1 class="onboard-title">どこでお祝いする？</h1>
@@ -107,9 +107,9 @@
 <section id="album" class="panel"><h2>📚 思い出アルバム</h2><p class="muted">大切に残しておきたいカードを保存できます。</p><div class="card" id="savedCards"><div class="muted">保存したカードはここに表示されます。</div></div></section>
 <section id="manage" class="panel"><h2>🛡️ 運営（公式アカウント専用）</h2>
 
-<div class="section">🚩 通報されたカード</div><div class="card" id="reportQueue"><div class="muted">現在、通報はありません。</div></div><div class="section">⛔ BAN・利用停止ユーザー</div><div class="card" id="banQueue"><div class="muted">BANされたユーザーはいません。</div></div>
+<div class="section">🚩 通報されたカード</div><div class="card" id="reportQueue"><div class="muted">現在、通報はありません。</div></div><div class="section">⛔ BAN・利用停止ユーザー</div><div class="card" id="banQueue"><div class="muted">BANされたユーザーはいません。</div></div><div class="section">⚠️ BANされた人と同じ端末から作られたアカウント</div><div class="card" id="deviceAlerts"><div class="muted">該当はありません。</div></div><div class="section">💬 フィードバック</div><div class="card" id="feedbackQueue"><div class="muted">フィードバックはありません。</div></div>
 </section>
-<section id="profile" class="panel"><h2>👤 プロフィール</h2><div class="card"><div class="field"><label>自分のアイコン</label><div class="profile-head"><div id="profileAvatar" class="profile-avatar">🙂</div><div><div class="muted">好きな絵文字を選ぶか、画像をアップロードできるよ。</div><label class="btn" for="avatarUpload" style="display:inline-block;margin-top:8px;cursor:pointer">画像を選ぶ</label><input id="avatarUpload" type="file" accept="image/*" style="display:none"></div></div><div class="avatar-options" id="avatarOptions" style="margin-top:12px"></div></div><div class="field"><label>ニックネーム</label><input id="name" placeholder="名前"></div><div class="field"><label>アカウント名</label><input id="profileHandle" readonly></div><div class="field"><label>誕生日</label><input id="birthday" type="date"></div><div class="field"><label>誕生日の公開範囲</label><select id="birthdayVisibility"><option value="public">全体に公開</option><option value="friends">友達まで公開</option><option value="group">同じグループのメンバーまで</option><option value="private">非公開</option></select><div class="muted">非公開にすると、プロフィールやカレンダーにも表示されません。</div></div><div class="field"><label>ひとこと</label><input id="bio" placeholder="よろしく！"></div><div class="field"><label>🎁 ほしい物リスト</label><textarea id="wishlist" rows="4" placeholder="例：本、文房具、好きなキャラクターのグッズなど&#10;ほしい物を改行して入力してね"></textarea><div class="muted">友達に見てもらえるリストだよ。</div></div><button class="btn primary" id="saveProfile">保存する</button></div></div><div class="card"><h3>アカウントの削除</h3><p class="muted">削除すると、カード・友達・グループ・保存したものがすべて消えて、元に戻せません。</p><button class="btn" id="deleteAccountBtn" style="color:#d9587b">アカウントを削除する</button></div></section>
+<section id="profile" class="panel"><h2>👤 プロフィール</h2><div class="card"><div class="field"><label>自分のアイコン</label><div class="profile-head"><div id="profileAvatar" class="profile-avatar">🙂</div><div><div class="muted">好きな絵文字を選ぶか、画像をアップロードできるよ。</div><label class="btn" for="avatarUpload" style="display:inline-block;margin-top:8px;cursor:pointer">画像を選ぶ</label><input id="avatarUpload" type="file" accept="image/*" style="display:none"></div></div><div class="avatar-options" id="avatarOptions" style="margin-top:12px"></div></div><div class="field"><label>ニックネーム</label><input id="name" placeholder="名前"></div><div class="field"><label>アカウント名</label><input id="profileHandle" readonly></div><div class="field"><label>誕生日</label><input id="birthday" type="date"></div><div class="field"><label>誕生日の公開範囲</label><select id="birthdayVisibility"><option value="public">全体に公開</option><option value="friends">友達まで公開</option><option value="group">同じグループのメンバーまで</option><option value="private">非公開</option></select><div class="muted">非公開にすると、プロフィールやカレンダーにも表示されません。</div></div><div class="field"><label>ひとこと</label><input id="bio" placeholder="よろしく！"></div><div class="field"><label>🎁 ほしい物リスト</label><textarea id="wishlist" rows="4" placeholder="例：本、文房具、好きなキャラクターのグッズなど&#10;ほしい物を改行して入力してね"></textarea><div class="muted">友達に見てもらえるリストだよ。</div></div><button class="btn primary" id="saveProfile">保存する</button></div></div><div class="card"><h3>💬 運営へのフィードバック</h3><p class="muted">不具合・困りごと・ご意見は、ここから運営に届きます（1日5件まで）。</p><textarea id="feedbackText" maxlength="500" rows="4" style="width:100%" placeholder="内容を書いてね（500文字まで）"></textarea><button class="btn primary" id="sendFeedbackBtn" style="margin-top:8px">送信</button></div><div class="card"><h3>アカウントの削除</h3><p class="muted">削除すると、カード・友達・グループ・保存したものがすべて消えて、元に戻せません。</p><button class="btn" id="deleteAccountBtn" style="color:#d9587b">アカウントを削除する</button></div></section>
 </div></main>
 <div id="profilePage" class="profilepage"><div class="profilepage-inner"><div id="profilePageContent"></div></div></div><div id="cardPage" class="cardpage"><div class="cardpage-inner"><div class="cardpage-top"><button class="btn" id="backFromCards">← 戻る</button><span class="muted">🎂 おめでとポスト</span></div><div id="cardPageContent"></div></div></div>
 <div class="modal" id="modal"><div class="dialog"><h3 id="modalTitle"></h3><div id="modalBody"></div><button class="btn" id="close">閉じる</button></div></div><div class="toast" id="toast"></div><div class="confetti" id="confetti" style="display:none"></div><div class="logout-gate" id="logoutGate"><div class="logout-card"><div style="font-size:42px">🎂</div><h2>ログアウトしました</h2><p class="muted">ログアウトしました。ログインし直してね。</p><button class="btn primary" id="demoLoginAgain">ログイン画面に戻る</button></div></div>
@@ -136,6 +136,19 @@ let friendRequests={incoming:[],outgoing:[]};
 let savedCardIds=[];
 let reports=[];
 let mediaDraft='';
+function shrinkImage(file,maxSide,q,keepGif){
+return new Promise(res=>{
+const rd=new FileReader();rd.onerror=()=>res(null);
+if(file.type==='image/gif'&&keepGif!==false){if(file.size>1.5*1024*1024)return res(null);rd.onload=()=>res(rd.result);rd.readAsDataURL(file);return;}
+rd.onload=()=>{const img=new Image();img.onerror=()=>res(null);img.onload=()=>{
+const k=Math.min(1,maxSide/Math.max(img.width,img.height));
+const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.width*k));c.height=Math.max(1,Math.round(img.height*k));
+c.getContext('2d').drawImage(img,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',q));};img.src=rd.result;};
+rd.readAsDataURL(file);
+});
+}
+function getDeviceId(){try{let d=localStorage.getItem('op_device_id');if(!d){d=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():('d'+Date.now()+Math.random().toString(16).slice(2));localStorage.setItem('op_device_id',d);}return d;}catch(e){return '';}}
+
 let myAuthId=null;
 
 const ADMIN_HANDLE='tunachi✓'; 
@@ -144,7 +157,7 @@ const avatarChoices=['🙂','😎','🐱','🐶','🐰','🦊','🐻','🐼','�
 const $=id=>document.getElementById(id);
 const safe=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]||c));
 function toast(t){const el=$('toast');if(el){el.textContent=t;el.style.display='block';setTimeout(()=>el.style.display='none',2100)}}
-function tab(t){if(t==='manage'&&!isAdminUser)t='home';if(t==='manage')renderAdmin();document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===t));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));if(t==='friends')loadFriends();if(t==='calendar')renderCalendar();if(t==='album')loadSavedCards();if(t==='manage'){renderAdmin();renderReports()}}
+function tab(t){if(t==='manage'&&!isAdminUser)t='home';if(t==='groups')refreshGroupBadges();if(t==='manage')renderAdmin();document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===t));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));if(t==='friends')loadFriends();if(t==='calendar')renderCalendar();if(t==='album')loadSavedCards();if(t==='manage'){renderAdmin();renderReports()}}
 document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
 
 const logoutBtn=$('logoutButton');if(logoutBtn)logoutBtn.onclick=()=>modal('ログアウトしますか？','<p>アカウントからログアウトします。</p><div class="btnrow"><button class="btn primary" id="confirmLogout">ログアウト</button><button class="btn" id="cancelAction">キャンセル</button></div>');
@@ -163,6 +176,8 @@ async function loadServerDataInner(){
 if(s0&&s0.is_banned){alert('このアカウントは利用停止になっています。');await sb.auth.signOut();location.reload();return;}
 isAdminUser=!!(s0&&s0.is_admin);const nm=$('navManage');if(nm)nm.style.display=isAdminUser?'':'none';if(isAdminUser)renderAdmin();}
 {const {data:gr}=await sb.rpc('my_group_requests');window.pendingGroupReqs=gr||[];}
+{const d=getDeviceId();if(d)await sb.rpc('register_device',{p_device:d});}
+await refreshGroupBadges(true);
   let {data:p}=await sb.from('profiles').select('*').eq('id',myAuthId).maybeSingle();
   if(p){
     profile={name:p.name||'',handle:p.handle||'',birthday:p.birthday||'',bio:p.bio||'',avatar:p.avatar||'🙂',birthdayVisibility:p.birthday_visibility||'friends',wishlist:p.wishlist||''};
@@ -419,19 +434,38 @@ function loadSavedCards(){
 let isAdminUser=false;
 async function renderAdmin(){
 if(!isAdminUser||!sb)return;
-const rq=$('reportQueue'),bq=$('banQueue');if(!rq||!bq)return;
-const {data:rp,error:e1}=await sb.rpc('admin_reports');
-if(e1){console.error(e1);rq.innerHTML='<div class="muted">読み込めませんでした。</div>';}
-else rq.innerHTML=rp.length?rp.map(r=>`<div class="report-row" style="display:block"><div><b>理由: ${safe(r.reason)}</b></div><div class="muted">通報した人: @${safe(r.reporter_handle||'?')} ／ 送った人: ${r.sender_handle?'@'+safe(r.sender_handle)+'（'+safe(r.sender_name||'')+'）':'（カードは削除済み）'}</div><div class="muted">カードの内容: ${safe(r.card_msg||r.preview||'')}</div><div class="btnrow" style="margin-top:8px">${r.card_id?`<button class="btn small-btn" onclick="adminDeleteCard('${r.card_id}')">カードを削除</button>`:''}${r.sender_id?`<button class="btn small-btn" style="background:#ffe8ef;color:#d9587b;" onclick="adminBan('${r.sender_id}','${safe(r.sender_handle)}')">送信者をBAN</button>`:''}<button class="btn small-btn" onclick="adminResolve('${r.id}')">確認済み（通報を消す）</button></div></div>`).join(''):'<div class="muted">現在、通報はありません。</div>';
-const {data:bn}=await sb.rpc('admin_bans');
-bq.innerHTML=(bn&&bn.length)?bn.map(b=>`<div class="report-row"><div class="grow"><b>@${safe(b.handle)}</b> ${safe(b.name||'')}<div class="muted">理由: ${safe(b.reason||'')}</div></div><button class="btn small-btn" onclick="adminUnban('${b.user_id}')">解除</button></div>`).join(''):'<div class="muted">BANされたユーザーはいません。</div>';
+const rq=$('reportQueue'),bq=$('banQueue'),dq=$('deviceAlerts'),fq=$('feedbackQueue');if(!rq||!bq)return;
+const [rp,bn,da,fb]=await Promise.all([sb.rpc('admin_reports'),sb.rpc('admin_bans'),sb.rpc('admin_device_alerts'),sb.rpc('admin_feedback')]);
+const rows=rp.data||[],open=rows.filter(r=>r.status==='open'),done=rows.filter(r=>r.status!=='open');
+const rpt=r=>`<div class="report-row" style="display:block"><div><b>理由: ${safe(r.reason)}</b> <span class="muted">${new Date(r.created_at).toLocaleString('ja-JP')}</span></div><div class="muted">通報した人: @${safe(r.reporter_handle||'?')} ／ 送った人: ${r.sender_handle?'@'+safe(r.sender_handle)+'（'+safe(r.sender_name||'')+'）':'（不明）'}</div><div class="muted">カードの内容: ${safe(r.card_msg||'（記録なし）')}${r.card_id?'':'（カードは削除済み）'}</div>`;
+rq.innerHTML=(rp.error?'<div class="muted">読み込めませんでした。</div>':'')+(open.length?open.map(r=>rpt(r)+`<div class="btnrow" style="margin-top:8px">${r.card_id?`<button class="btn small-btn" onclick="adminDeleteCard('${r.card_id}')">カードを削除</button>`:''}${r.sender_id?`<button class="btn small-btn" style="background:#ffe8ef;color:#d9587b;" onclick="adminBan('${r.sender_id}','${safe(r.sender_handle)}')">送信者をBAN</button>`:''}<button class="btn small-btn" onclick="adminResolve('${r.id}')">問題なし・対応済みにする</button></div></div>`).join(''):'<div class="muted">対応が必要な通報はありません。</div>')+(done.length?`<details style="margin-top:10px"><summary class="muted" style="cursor:pointer">対応済みの記録（${done.length}件・90日で自動で消えます）</summary>${done.map(r=>rpt(r)+`<div class="muted">対応: ${safe(r.action||'')}</div></div>`).join('')}</details>`:'');
+const bl=bn.data||[];
+bq.innerHTML=bl.length?bl.map(b=>`<div class="report-row"><div class="grow"><b>@${safe(b.handle)}</b> ${safe(b.name||'')}<div class="muted">理由: ${safe(b.reason||'')}</div></div><button class="btn small-btn" onclick="adminUnban('${b.user_id}')">解除</button></div>`).join(''):'<div class="muted">BANされたユーザーはいません。</div>';
+const al=da.data||[];
+if(dq)dq.innerHTML=al.length?'<div class="muted">学校のパソコンなど、共有の端末の可能性もあります。内容を見て判断してください。</div>'+al.map(a=>`<div class="report-row"><div class="grow"><b>@${safe(a.handle)}</b> ${safe(a.name||'')}<div class="muted">BANされた @${safe(a.banned_handle)} と同じ端末</div></div><button class="btn small-btn" style="background:#ffe8ef;color:#d9587b;" onclick="adminBan('${a.user_id}','${safe(a.handle)}')">BAN</button></div>`).join(''):'<div class="muted">該当はありません。</div>';
+const fl=fb.data||[],fopen=fl.filter(f=>f.status==='open');
+if(fq)fq.innerHTML=fl.length?fl.map(f=>`<div class="report-row" style="display:block"><div><b>@${safe(f.handle)}</b> ${safe(f.name||'')} <span class="muted">${new Date(f.created_at).toLocaleString('ja-JP')}${f.status==='open'?'':' ・対応済み'}</span></div><div style="margin:4px 0;white-space:pre-wrap">${safe(f.message)}</div>${f.status==='open'?`<button class="btn small-btn" onclick="adminResolveFeedback('${f.id}')">対応済みにする</button>`:''}</div>`).join(''):'<div class="muted">フィードバックはありません。</div>';
+const n=open.length+al.length+fopen.length,nm=$('navManage');
+if(nm)nm.textContent='🛡️ 運営'+(n?' 🔴'+n:'');
 }
 async function adminCall(fn,args,msg){const {error}=await sb.rpc(fn,args);if(error){console.error(error);return toast('できなかったよ：'+error.message);}toast(msg);renderAdmin();}
 window.adminDeleteCard=id=>{if(confirm('このカードを削除しますか？'))adminCall('admin_delete_card',{cid:id},'カードを削除したよ');};
-window.adminResolve=id=>adminCall('admin_resolve_report',{rid:id},'通報を確認済みにしたよ');
+window.adminResolve=id=>adminCall('admin_resolve_report',{rid:id,p_action:'問題なし'},'対応済みにしたよ');
+window.adminResolveFeedback=id=>adminCall('admin_resolve_feedback',{fid:id},'対応済みにしたよ');
 window.adminBan=(uid,handle)=>{const reason=prompt('BANする理由を入力してください（@'+handle+'）');if(reason)adminCall('admin_ban',{uid,p_reason:reason},'BANしたよ');};
 window.adminUnban=uid=>{if(confirm('BANを解除しますか？'))adminCall('admin_unban',{uid},'BANを解除したよ');};
 
+async function refreshGroupBadges(first){
+if(!sb||!myAuthId)return;
+const {data}=await sb.rpc('group_request_counts');
+const m={};let total=0;(data||[]).forEach(r=>{m[r.group_id]=Number(r.n);total+=Number(r.n);});
+const changed=JSON.stringify(m)!==JSON.stringify(window.groupReqCounts||{});
+window.groupReqCounts=m;
+const gb=document.querySelector('.nav button[data-tab="groups"]');if(gb)gb.textContent='🏫 グループ'+(total?' 🔴'+total:'');
+if(first&&total)toast('グループに参加リクエストが'+total+'件あるよ');
+if(changed&&!first)render();
+}
+setInterval(()=>{if(!document.hidden&&myAuthId)refreshGroupBadges();},60000);
 function grpIcon(g){const a=g&&g.icon;return a&&String(a).startsWith('data:image/')?`<img src="${a}" alt="" style="width:100%;height:100%;object-fit:cover">`:safe(a||'🏫')}
 function memAvatar(a){return a&&String(a).startsWith('data:image/')?`<img src="${a}" alt="" style="width:100%;height:100%;object-fit:cover">`:safe(a||'🙂')}
 window.showGroupMembers=async gid=>{
@@ -458,8 +492,8 @@ return `<div class="friend-row"><div class="avatar" style="overflow:hidden">${me
 modal((g?g.name:'グループ')+' のメンバー（'+data.length+'人）',reqHtml+(rows||'<div class="muted">メンバーがいません。</div>'));
 };
 window.groupMemberRequest=async h=>{await sendProfileFriendRequest(h);if(window.__lastGroupModal)showGroupMembers(window.__lastGroupModal);};
-window.approveGroupJoin=async(gid,uid)=>{const {error}=await sb.rpc('approve_group_join',{gid,uid});if(error){console.error(error);return toast('承認できなかったよ');}toast('参加を承認したよ');showGroupMembers(gid);};
-window.rejectGroupJoin=async(gid,uid)=>{const {error}=await sb.rpc('reject_group_join',{gid,uid});if(error){console.error(error);return toast('うまくいかなかったよ');}toast('リクエストを拒否したよ');showGroupMembers(gid);};
+window.approveGroupJoin=async(gid,uid)=>{const {error}=await sb.rpc('approve_group_join',{gid,uid});if(error){console.error(error);return toast('承認できなかったよ');}toast('参加を承認したよ');showGroupMembers(gid);refreshGroupBadges();};
+window.rejectGroupJoin=async(gid,uid)=>{const {error}=await sb.rpc('reject_group_join',{gid,uid});if(error){console.error(error);return toast('うまくいかなかったよ');}toast('リクエストを拒否したよ');showGroupMembers(gid);refreshGroupBadges();};
 window.kickGroupMember=async(gid,uid)=>{
 if(!confirm('このメンバーをグループから外しますか？'))return;
 const {error}=await sb.rpc('remove_group_member',{gid,uid});
@@ -490,6 +524,14 @@ rd.readAsDataURL(file);
 inp.dataset.gid=gid;inp.click();
 };
 
+document.addEventListener('click',async e=>{
+if(!e.target||e.target.id!=='sendFeedbackBtn'||!sb)return;
+const ta=$('feedbackText'),t=ta?(ta.value||'').trim():'';
+if(!t)return toast('内容を書いてね');
+const {error}=await sb.rpc('send_feedback',{p_msg:t});
+if(error){console.error(error);return toast(/too many/i.test(error.message||'')?'今日は送りすぎだよ。また明日ね':'送れなかったよ');}
+ta.value='';toast('運営に送ったよ。ありがとう！');
+});
 document.addEventListener('click',async e=>{
 if(!e.target||e.target.id!=='deleteAccountBtn'||!sb)return;
 const t=prompt('アカウントを削除すると元に戻せません。続けるなら、自分のアカウント名「'+profile.handle+'」を入力してください');
@@ -544,7 +586,7 @@ function render(){
  const ao=$('avatarOptions');if(ao)ao.innerHTML=avatarChoices.map(a=>`<button type="button" class="avatar-choice ${profile.avatar===a?'sel':''}" data-avatar="${a}">${a}</button>`).join('');
  const pp=$('people');if(pp)pp.innerHTML=recipientList().map(p=>{let days=daysUntilBirthday(p.date);return `<div class="person"><div class="avatar">${p.emoji}</div><div class="grow"><b>${p.name}</b><div class="muted">${p.date} 生まれ · ${days===0?'今日が誕生日！':`あと${days}日`}</div></div><button class="btn" onclick="showBirthday('${p.id}')">カードを見る</button><button class="btn primary" onclick="pick('${p.id}')">書く</button></div>`}).join('');
  const toEl=$('to');if(toEl)toEl.innerHTML=recipientList().map(p=>`<option value="${p.id}">${safe(p.name)}</option>`).join('');
- const gl=$('groupList');if(gl)gl.innerHTML=groups.length?groups.map(g=>`<div class="group"><div class="avatar" style="overflow:hidden">${grpIcon(g)}</div><div class="grow"><b>${safe(g.name)}</b><div class="muted">参加中</div></div><button class="btn small-btn" style="background:#ffe8ef;color:#d9587b;" onclick="leaveGroup('${g.id}')">🚪 抜ける</button><button class="btn small-btn" onclick="showGroupMembers('${g.id}')">👥 メンバー</button>${g.owner===myAuthId?`<button class="btn small-btn" onclick="changeGroupPhoto('${g.id}')">📷 写真</button>`:''}</div>`).join(''):'<div class="muted">参加しているグループはありません。</div>';
+ const gl=$('groupList');if(gl)gl.innerHTML=groups.length?groups.map(g=>`<div class="group"><div class="avatar" style="overflow:hidden">${grpIcon(g)}</div><div class="grow"><b>${safe(g.name)}</b><div class="muted">参加中</div></div><button class="btn small-btn" style="background:#ffe8ef;color:#d9587b;" onclick="leaveGroup('${g.id}')">🚪 抜ける</button><button class="btn small-btn" onclick="showGroupMembers('${g.id}')">👥 メンバー${(window.groupReqCounts||{})[g.id]?' 🔴'+window.groupReqCounts[g.id]:''}</button>${g.owner===myAuthId?`<button class="btn small-btn" onclick="changeGroupPhoto('${g.id}')">📷 写真</button>`:''}</div>`).join(''):'<div class="muted">参加しているグループはありません。</div>';
 if(gl)gl.innerHTML+=(window.pendingGroupReqs||[]).map(r=>`<div class="group"><div class="avatar">⏳</div><div class="grow"><b>${safe(r.name)}</b><div class="muted">承認待ち</div></div></div>`).join('');
  const nameEl=$('name');if(nameEl)nameEl.value=profile.name;
  const bthEl=$('birthday');if(bthEl)bthEl.value=profile.birthday;
@@ -641,18 +683,16 @@ if(joinGroupBtn){
 
 const cardMediaInput=$('cardMedia');
 if(cardMediaInput){
-  cardMediaInput.onchange=e=>{
-    let file=e.target.files[0];
-    if(!file)return;
-    if(!file.type.startsWith('image/'))return toast('画像またはGIFを選んでね');
-    let reader=new FileReader();
-    reader.onload=()=>{
-      mediaDraft=reader.result;
-      const mp=$('mediaPreview');
-      if(mp)mp.innerHTML=`<img class="card-media" src="${mediaDraft}" alt="プレビュー">`;
-    };
-    reader.readAsDataURL(file);
-  };
+  cardMediaInput.onchange=async e=>{
+const file=e.target.files[0];
+if(!file)return;
+if(!file.type.startsWith('image/'))return toast('画像またはGIFを選んでね');
+const r=await shrinkImage(file,900,0.8);
+if(!r)return toast('この画像は使えないよ（GIFは1.5MB以下にしてね）');
+mediaDraft=r;
+const mp=$('mediaPreview');
+if(mp)mp.innerHTML=`<img class="card-media" src="${mediaDraft}" alt="プレビュー">`;
+};
 }
 
 async function renderFriendSearchResult(h){
@@ -754,13 +794,14 @@ if(avatarOpts){
 
 const avatarUploadInput=$('avatarUpload');
 if(avatarUploadInput){
-  avatarUploadInput.onchange=e=>{
-    let file=e.target.files[0];
-    if(!file)return;
-    let reader=new FileReader();
-    reader.onload=()=>{profile.avatar=reader.result;render();};
-    reader.readAsDataURL(file);
-  };
+  avatarUploadInput.onchange=async e=>{
+const file=e.target.files[0];
+if(!file)return;
+if(!file.type.startsWith('image/'))return toast('画像ファイルを選んでね');
+const r=await shrinkImage(file,200,0.82,false);
+if(!r)return toast('この画像は使えないよ');
+profile.avatar=r;render();
+};
 }
 
 const saveProfBtn=$('saveProfile');
